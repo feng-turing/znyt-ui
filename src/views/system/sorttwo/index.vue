@@ -102,25 +102,27 @@
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-upload
-          class="upload-demo"
-          ref="upload"
-          :action="url"
-          :headers="header"
-          accept="image/jpeg,image/jpg,image/png"
-          :on-change="handleChange"
-          :on-remove="handleRemove"
-          :file-list="fileList"
-          list-type="picture"
-          :limit=1
-          :on-success="handleSeccess"
-          :on-error="handleError"
-          :before-upload="beforeUpload"
+        <el-form-item>
+          <el-upload
+            class="upload-demo"
+            ref="upload"
+            :action="url"
+            :headers="header"
+            accept="image/jpeg,image/jpg,image/png"
+            :before-remove="beforeRemove"
+            :on-remove="handleRemove"
+            :file-list="fileList"
+            list-type="picture"
+            :limit=1
+            :on-success="handleSeccess"
+            :on-error="handleError"
+            :before-upload="beforeUpload"
           >
-          <el-button slot="trigger" size="small" type="primary">选取分类图标</el-button>
-<!--          <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button>-->
-          <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
-        </el-upload>
+            <el-button slot="trigger" size="small" type="primary">选取分类图标</el-button>
+            <!--          <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button>-->
+            <div slot="tip" class="el-upload__tip">只能上传jpg/png文件</div>
+          </el-upload>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm" >确 定</el-button>
@@ -134,6 +136,7 @@
 import { listSortTwo, getSortTwo, delSortTwo, addSortTwo, updateSortTwo } from "@/api/system/sortTwo";
 import { getToken } from '@/utils/auth'
 import {addSortOne, updateSortOne} from "@/api/system/sortOne";
+import {delImg} from "@/api/system/commodityInfo";
 export default {
   name: "SortTwo",
   data() {
@@ -141,6 +144,9 @@ export default {
       header: {"Authorization": 'Bearer ' + getToken()},
       //上传图片
       fileList: [],
+      //表单提交url
+      url: process.env.VUE_APP_BASE_API + '/system/file/uploadImg/sort',
+
       // 遮罩层
       loading: true,
       // 选中数组
@@ -157,8 +163,6 @@ export default {
       sortTwoList: [],
       // 弹出层标题
       title: "",
-      //表单提交url
-      url: process.env.VUE_APP_BASE_API + '/system/upload/img/sort',
       // 是否显示弹出层
       open: false,
       // 查询参数
@@ -273,7 +277,6 @@ export default {
 
     /** 提交按钮 */
     submitForm() {
-
       this.$refs["form"].validate(valid => {
         this.form.oneId = this.oneId;
         if (valid) {
@@ -313,10 +316,17 @@ export default {
       this.msgError("提交失败,请稍后重试");
     },
     handleRemove(file1, fileList1) {
+      this.form.sortImg = null;
       this.fileList = fileList1;
     },
-    handleChange(file1, fileList1) {//上传文件变化时
-      this.fileList = fileList1;
+    beforeRemove(file1, fileList1) {//上传文件变化时
+      const data = {
+        delImgPath: file1.response.data
+      }
+      //删除临时图片
+      delImg(data).then(response => {
+        console.log(response);
+      });
     },
     //上传文件提交时
     beforeUpload(file) {

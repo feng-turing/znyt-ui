@@ -95,6 +95,13 @@
             size="mini"
             type="text"
             icon="el-icon-edit"
+            @click="handleCommodityDetail(scope.row)"
+          >添加商品详情
+          </el-button>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
             v-hasPermi="['system:commodityInfo:edit']"
           >修改
@@ -120,12 +127,12 @@
     />
 
     <!-- 添加或修改自营商品信息对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="800px" append-to-body>
+    <el-dialog :title="title" :visible.sync="open" width="800px" append-to-body :before-close="dialogBeforeClose">
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-row>
           <el-col :span="24">
 <!--            <el-form-item label="经销商id" prop="dealerId">-->
-            <el-form-item label="经销商">
+            <el-form-item label="经销商" prop="dealerId">
 <!--              <el-input v-model="form.dealerId" placeholder="请输入经销商id"/>-->
               <treeselect v-model="form.dealerId" :options="dealerOptions" :disable-branch-nodes="true" :show-count="true" placeholder="请选择经销商" />
             </el-form-item>
@@ -200,13 +207,34 @@
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="商品图片" prop="commodityImg">
+            <!--<el-form-item label="商品图片" prop="commodityImg">
               <el-input v-model="form.commodityImg" placeholder="请输入商品图片"/>
+            </el-form-item>-->
+            <el-form-item label="商品图片" prop="commodityImg">
+              <el-upload
+                class="upload-demo"
+                ref="upload"
+                :action="url"
+                :headers="header"
+                accept="image/jpeg,image/jpg,image/png"
+                :before-upload="beforeUpload"
+                :before-remove="beforeRemove"
+                :on-remove="handleRemove"
+                :on-success="handleSeccess"
+                :on-error="handleError"
+                :file-list="fileList"
+                list-type="picture"
+                :limit=1
+              >
+                <el-button slot="trigger" size="small" type="primary">选取商品封面</el-button>
+                <!--          <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button>-->
+                <div slot="tip" class="el-upload__tip">只能上传jpg/png文件</div>
+              </el-upload>
             </el-form-item>
           </el-col>
           <el-col :span="12">
               <el-form-item label="是否会员" prop="commodityIsMember">
-                <el-radio-group v-model="form.commodityIsMember" @change="fun_ismember_change">
+                <el-radio-group v-model="form.commodityIsMember" @change="fun_ismember_change" >
                   <el-radio
                     v-for="dict in commodityIsMemberOptions"
                     :key="dict.dictValue"
@@ -220,21 +248,46 @@
             </el-form-item>
           </el-col>
         </el-row>
+
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button @click="cancel">取 消</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog :title="title" :visible.sync="openDetail" width="800px" append-to-body :before-close="dialogBeforeClose">
+      <el-form ref="formDetail" :model="form" :rules="rules" label-width="80px">
         <el-row>
-          <el-col :span="12">
-            <el-form-item label="商品详述" prop="commodityDetail">
-              <el-input v-model="form.commodityDetail" type="textarea" placeholder="请输入内容"/>
+          <el-col :span="24">
+            <el-form-item label="商品详述" prop="commodityDetail" >
+              <el-input v-model="form.commodityDetail" type="textarea" placeholder="请输入内容" rows="4"/>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
+          <el-col :span="24">
             <el-form-item label="详情图片" prop="commodityDetailImg">
-              <el-input v-model="form.commodityDetailImg" placeholder="请输入详情图片"/>
+<!--              <el-input v-model="form.commodityDetailImg" placeholder="请输入详情图片"/>-->
+              <el-upload
+                :headers="header"
+                :action="url"
+                list-type="picture-card"
+                :on-preview="handlePictureCardPreview"
+                :on-success="handleSeccess"
+                :on-error="handleError"
+                :on-remove="handleRemove"
+                :before-remove="beforeRemove"
+                multiple
+              >
+                <i class="el-icon-plus"></i>
+              </el-upload>
+              <el-dialog :visible.sync="dialogVisible" :modal="false">
+                <img width="100%" :src="dialogImageUrl" alt="">
+              </el-dialog>
             </el-form-item>
           </el-col>
         </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button type="primary" @click="submitForm1">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
@@ -243,16 +296,28 @@
 
 <script>
 import {
-  listCommodityInfo, getCommodityInfo, delCommodityInfo, addCommodityInfo, updateCommodityInfo, getSortTwoAll } from "@/api/system/commodityInfo";
+  listCommodityInfo, getCommodityInfo, delCommodityInfo, addCommodityInfo, updateCommodityInfo,update2CommodityInfo,  getSortTwoAll, delImg } from "@/api/system/commodityInfo";
 import { treeselect } from "@/api/system/dept";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
+import {getToken} from "@/utils/auth";
 
 export default {
   name: "CommodityInfo",
   components: { Treeselect },
   data() {
     return {
+      header: {"Authorization": 'Bearer ' + getToken()},
+      //上传图片
+      fileList: [],
+      //表单提交url
+      url: process.env.VUE_APP_BASE_API + '/system/file/uploadImg/commodity',
+      //商品详情图片
+      detailImgList: [],
+      dialogVisible: false,
+      dialogImageUrl: '',
+      detailImgNewList:[],
+      detailImgDelList:[],
       // 遮罩层
       loading: true,
       // 选中数组
@@ -273,6 +338,8 @@ export default {
       dealerOptions: undefined,
       // 是否显示弹出层
       open: false,
+      // 是否弹出商品详情
+      openDetail: false,
       // 是否上架字典
       commodityIsReleaseOptions: [],
       // 是否会员字典
@@ -328,9 +395,9 @@ export default {
         commodityIsMember: [
           {required: true, message: "是否会员不能为空", trigger: "blur"}
         ],
-        commodityMemberPrice: [
+        /*commodityMemberPrice: [
           {required: true, message: "会员价不能为空", trigger: "blur"}
-        ],
+        ],*/
         commodityDetailImg: [
           {required: true, message: "详情图片不能为空", trigger: "blur"}
         ],
@@ -381,7 +448,10 @@ export default {
     // 取消按钮
     cancel() {
       this.open = false;
+      this.openDetail = false;
       this.reset();
+      this.fileList = [];
+      this.detailImgList = [];
     },
     // 表单重置
     reset() {
@@ -429,6 +499,7 @@ export default {
     /** 新增按钮操作 */
     handleAdd() {
       this.reset();
+      this.fileList = [];
       this.open = true;
       this.title = "添加自营商品信息";
     },
@@ -438,10 +509,28 @@ export default {
       const commodityId = row.commodityId || this.ids
       getCommodityInfo(commodityId).then(response => {
         this.form = response.data;
+        this.fileList=[{
+          name: this.form.commodityName,
+          url: this.form.commodityImg
+        }];
         this.open = true;
         this.title = "修改自营商品信息";
       });
     },
+
+    /** 行添加商品详情操作*/
+    handleCommodityDetail(row) {
+      this.reset();
+      const commodityId = row.commodityId || this.ids
+
+      getCommodityInfo(commodityId).then(response => {
+        this.form = response.data;
+        this.detailImgList = this.form.commodityDetailImg == null || this.form.commodityDetailImg == "" ? [] : this.form.commodityDetailImg;
+        this.openDetail = true;
+        this.titleDetail = "添加商品详情";
+      });
+    },
+
     /** 提交按钮 */
     submitForm() {
       this.$refs["form"].validate(valid => {
@@ -459,6 +548,37 @@ export default {
               if (response.code === 200) {
                 this.msgSuccess("新增成功");
                 this.open = false;
+                this.getList();
+              }
+            });
+          }
+        }
+      });
+    },
+
+    /** 详情提交按钮 */
+    submitForm1() {
+
+      this.$refs["formDetail"].validate(valid => {
+        if (valid) {
+          /*//临时存储图片集合用
+          var imgs = [];
+          //提交前拿到上传的图片集合
+          console.log(this.detailImgList);
+          for (let i = 0; i < this.detailImgList.length; i++) {
+            const response = this.detailImgList[i];
+            const _file_path= response.response.data;
+            imgs.push(_file_path);
+          }
+          //将数组转换成字符串 默认用逗号隔开
+          this.form.commodityDetailImg = imgs.join(',');*/
+          this.form.newImgs = this.detailImgNewList;
+          this.form.delImgs = this.detailImgDelList;
+          if (this.form.commodityId != null) {
+            update2CommodityInfo(this.form).then(response => {
+              if (response.code === 200) {
+                this.msgSuccess("添加商品详情成功");
+                this.openDetail = false;
                 this.getList();
               }
             });
@@ -499,7 +619,64 @@ export default {
         this.isMember = true;
         this.form.commodityMemberPrice = 0;
       }
-    }
+    },
+
+    //upload file 函数
+    handleSeccess(response, file, fileList1) {
+      if (response.code === 200 ) {
+        //如果商品信息dialog打开,就是商品标题图
+        if (this.open) {
+          this.form.commodityImg = response.data;
+          this.fileList = fileList1;
+        }
+        //如果时商品详情dialog打开,就是详情图
+        else if (this.openDetail) {
+          this.detailImgList = fileList1;
+          //每次新增都添加都新增集合中
+          this.detailImgNewList.push(response);
+        }
+        //this.$refs.upload.clearFiles();
+        this.msgSuccess("提交成功");
+      } else {
+        this.msgError("提交失败,请稍后重试");
+      }
+    },
+    handleError() {
+      this.msgError("提交失败,请稍后重试");
+    },
+    handleRemove(file1, fileList1) {
+      this.form.commodityImg = null;
+      this.fileList = fileList1;
+      //每次删除都添加到删除数组中
+      this.detailImgDelList.push(file1.name);
+    },
+
+    beforeRemove(file1, fileList1) {//上传文件变化时
+      const data = {
+        delImgPath: file1.response.data
+      }
+      //删除临时图片
+      delImg(data).then(response => {
+        console.log(response);
+      });
+    },
+
+    handlePictureCardPreview(file) {
+      this.dialogImageUrl = file.url;
+      this.dialogVisible = true;
+    },
+    //上传文件提交时
+    beforeUpload(file) {
+      return true;
+    },
+    //dialog框 关闭时触发
+    dialogBeforeClose(done) {
+      this.reset();
+      this.fileList = [];
+      this.detailImgList = []
+      done();
+    },
+
   }
 };
 </script>
