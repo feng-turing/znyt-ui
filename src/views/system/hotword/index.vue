@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="分类名称" prop="oneName">
+      <el-form-item label="热词" prop="hotWordName">
         <el-input
-          v-model="queryParams.oneName"
-          placeholder="分类名称"
+          v-model="queryParams.hotWordName"
+          placeholder="请输入热词"
           clearable
           size="small"
           @keyup.enter.native="handleQuery"
@@ -23,17 +23,17 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['system:sortOne:add']"
+          v-hasPermi="['system:hotword:add']"
         >新增</el-button>
       </el-col>
-      <el-col :span="1.5">
+      <!--<el-col :span="1.5">
         <el-button
           type="success"
           icon="el-icon-edit"
           size="mini"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['system:sortOne:edit']"
+          v-hasPermi="['system:hotword:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -43,39 +43,26 @@
           size="mini"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['system:sortOne:remove']"
+          v-hasPermi="['system:hotword:remove']"
         >删除</el-button>
       </el-col>
-      <!--<el-col :span="1.5">
+      <el-col :span="1.5">
         <el-button
           type="warning"
           icon="el-icon-download"
           size="mini"
           @click="handleExport"
-          v-hasPermi="['system:sortOne:export']"
+          v-hasPermi="['system:hotword:export']"
         >导出</el-button>
       </el-col>-->
 	  <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="sortOneList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="hotwordList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键" align="center" prop="oneId" v-if="false"/>
-      <el-table-column
-        label="序号"
-        type="index"
-        width="50"
-        align="center">
-      </el-table-column>
-      <el-table-column label="分类名称" align="center" :show-overflow-tooltip="true">
-        <template slot-scope="scope">
-          <router-link :to="'/sort/typeData/' + scope.row.oneId" class="link-type">
-            <span>{{ scope.row.oneName }}</span>
-          </router-link>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="备注" align="center" prop="remark" />
+<!--      <el-table-column label="主键" align="center" prop="hotWordId" />-->
+      <el-table-column label="序号" type="index" align="center" />
+      <el-table-column label="热词" align="center" prop="hotWordName" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -83,14 +70,14 @@
             type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['system:sortOne:edit']"
+            v-hasPermi="['system:hotword:edit']"
           >修改</el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
-            v-hasPermi="['system:sortOne:remove']"
+            v-hasPermi="['system:hotword:remove']"
           >删除</el-button>
         </template>
       </el-table-column>
@@ -104,14 +91,11 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改项目一级分类对话框 -->
+    <!-- 添加或修改搜索热词对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="分类名称" prop="oneName">
-          <el-input v-model="form.oneName" placeholder="分类名称" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
+        <el-form-item label="热词" prop="hotWordName">
+          <el-input v-model="form.hotWordName" placeholder="请输入热词" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -123,10 +107,10 @@
 </template>
 
 <script>
-import { listSortOne, getSortOne, delSortOne, addSortOne, updateSortOne } from "@/api/system/sortOne";
+import { listHotword, getHotword, delHotword, addHotword, updateHotword } from "@/api/system/hotword";
 
 export default {
-  name: "SortOne",
+  name: "Hotword",
   data() {
     return {
       // 遮罩层
@@ -141,8 +125,8 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 项目一级分类表格数据
-      sortOneList: [],
+      // 搜索热词表格数据
+      hotwordList: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -151,15 +135,12 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        oneName: null,
+        hotWordName: null,
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
-        oneName: [
-          { required: true, message: "分类名称不能为空", trigger: "blur" }
-        ],
       }
     };
   },
@@ -167,11 +148,11 @@ export default {
     this.getList();
   },
   methods: {
-    /** 查询项目一级分类列表 */
+    /** 查询搜索热词列表 */
     getList() {
       this.loading = true;
-      listSortOne(this.queryParams).then(response => {
-        this.sortOneList = response.rows;
+      listHotword(this.queryParams).then(response => {
+        this.hotwordList = response.rows;
         this.total = response.total;
         this.loading = false;
       });
@@ -184,13 +165,12 @@ export default {
     // 表单重置
     reset() {
       this.form = {
-        oneId: null,
-        oneName: null,
+        hotWordId: null,
+        hotWordName: null,
         createBy: null,
         createTime: null,
         updateBy: null,
-        updateTime: null,
-        remark: null
+        updateTime: null
       };
       this.resetForm("form");
     },
@@ -206,7 +186,7 @@ export default {
     },
     // 多选框选中数据
     handleSelectionChange(selection) {
-      this.ids = selection.map(item => item.oneId)
+      this.ids = selection.map(item => item.hotWordId)
       this.single = selection.length!==1
       this.multiple = !selection.length
     },
@@ -214,24 +194,24 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加项目一级分类";
+      this.title = "添加搜索热词";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
-      const oneId = row.oneId || this.ids
-      getSortOne(oneId).then(response => {
+      const hotWordId = row.hotWordId || this.ids
+      getHotword(hotWordId).then(response => {
         this.form = response.data;
         this.open = true;
-        this.title = "修改项目一级分类";
+        this.title = "修改搜索热词";
       });
     },
     /** 提交按钮 */
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
-          if (this.form.oneId != null) {
-            updateSortOne(this.form).then(response => {
+          if (this.form.hotWordId != null) {
+            updateHotword(this.form).then(response => {
               if (response.code === 200) {
                 this.msgSuccess("修改成功");
                 this.open = false;
@@ -239,7 +219,7 @@ export default {
               }
             });
           } else {
-            addSortOne(this.form).then(response => {
+            addHotword(this.form).then(response => {
               if (response.code === 200) {
                 this.msgSuccess("新增成功");
                 this.open = false;
@@ -252,13 +232,13 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      const oneIds = row.oneId || this.ids;
-      this.$confirm('是否确认删除项目一级分类编号为"' + oneIds + '"的数据项?', "警告", {
+      const hotWordIds = row.hotWordId || this.ids;
+      this.$confirm('是否确认删除搜索热词编号为"' + hotWordIds + '"的数据项?', "警告", {
           confirmButtonText: "确定",
           cancelButtonText: "取消",
           type: "warning"
         }).then(function() {
-          return delSortOne(oneIds);
+          return delHotword(hotWordIds);
         }).then(() => {
           this.getList();
           this.msgSuccess("删除成功");
@@ -266,9 +246,9 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('system/sortOne/export', {
+      this.download('system/hotword/export', {
         ...this.queryParams
-      }, `system_sortOne.xlsx`)
+      }, `system_hotword.xlsx`)
     }
   }
 };

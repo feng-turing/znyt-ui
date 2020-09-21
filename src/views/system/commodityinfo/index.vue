@@ -60,6 +60,16 @@
       </el-col>
       <el-col :span="1.5">
         <el-button
+          type="success"
+          icon="el-icon-edit"
+          size="mini"
+          :disabled="multiple"
+          @click="handleBatchRelease"
+        >批量上架
+        </el-button>
+      </el-col>
+      <!--<el-col :span="1.5">
+        <el-button
           type="warning"
           icon="el-icon-download"
           size="mini"
@@ -67,7 +77,7 @@
           v-hasPermi="['system:commodityInfo:export']"
         >导出
         </el-button>
-      </el-col>
+      </el-col>-->
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -269,6 +279,7 @@
               <el-upload
                 :headers="header"
                 :action="url"
+                :file-list="detailImgList"
                 list-type="picture-card"
                 :on-preview="handlePictureCardPreview"
                 :on-success="handleSeccess"
@@ -296,7 +307,7 @@
 
 <script>
 import {
-  listCommodityInfo, getCommodityInfo, delCommodityInfo, addCommodityInfo, updateCommodityInfo,update2CommodityInfo,  getSortTwoAll, delImg } from "@/api/system/commodityInfo";
+  listCommodityInfo, getCommodityInfo, delCommodityInfo, addCommodityInfo, updateCommodityInfo,update2CommodityInfo,  getSortTwoAll, delImg, releaseCommodityInfo } from "@/api/system/commodityInfo";
 import { treeselect } from "@/api/system/dept";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
@@ -429,6 +440,8 @@ export default {
         this.total = response.total;
         this.loading = false;
       });
+      this.detailImgNewList.length=0;
+      this.detailImgDelList.length=0;
     },
     /** 查询部门下拉树结构 */
     getTreeselect() {
@@ -525,7 +538,7 @@ export default {
 
       getCommodityInfo(commodityId).then(response => {
         this.form = response.data;
-        this.detailImgList = this.form.commodityDetailImg == null || this.form.commodityDetailImg == "" ? [] : this.form.commodityDetailImg;
+        this.detailImgList = this.form.commodityDetailImg == null || this.form.commodityDetailImg == "" ? [] : JSON.parse(this.form.commodityDetailImg);
         this.openDetail = true;
         this.titleDetail = "添加商品详情";
       });
@@ -601,6 +614,23 @@ export default {
       }).catch(function () {
       });
     },
+
+    /** 删除按钮操作 */
+    handleBatchRelease(row) {
+      const commodityIds = row.commodityId || this.ids;
+      this.$confirm('是否确认将选中数据中未上架商品进行上架', "警告", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      }).then(function () {
+        return releaseCommodityInfo(commodityIds);
+      }).then(() => {
+        this.getList();
+        this.msgSuccess("上架成功");
+      }).catch(function () {
+      });
+    },
+
     /** 导出按钮操作 */
     handleExport() {
       this.download('system/commodityInfo/export', {
@@ -645,13 +675,26 @@ export default {
       this.msgError("提交失败,请稍后重试");
     },
     handleRemove(file1, fileList1) {
-      this.form.commodityImg = null;
-      this.fileList = fileList1;
-      //每次删除都添加到删除数组中
-      this.detailImgDelList.push(file1.name);
+
+      //如果商品信息dialog打开,就是商品标题图
+      if (this.open) {
+        this.form.commodityImg = null;
+        this.fileList = fileList1;
+      }
+      //如果时商品详情dialog打开,就是详情图
+      else if (this.openDetail) {
+        this.detailImgList = fileList1;
+        //每次删除都添加到删除数组中
+        if ( file1.response == undefined || file1.response == null || file1.response == '' ) {
+          this.detailImgDelList.push(file1.name);
+        }
+      }
     },
 
     beforeRemove(file1, fileList1) {//上传文件变化时
+      if ( file1.response == undefined || file1.response == null || file1.response == '' ) {
+        return;
+      }
       const data = {
         delImgPath: file1.response.data
       }

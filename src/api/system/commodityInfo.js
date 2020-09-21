@@ -52,6 +52,14 @@ export function delCommodityInfo(commodityId) {
   })
 }
 
+// 删除自营商品信息
+export function releaseCommodityInfo(commodityId) {
+  return request({
+    url: '/system/commodityInfo/release/' + commodityId,
+    method: 'get'
+  })
+}
+
 // 查询项目二级分类详细
 export function getSortTwoAll() {
   return request({
