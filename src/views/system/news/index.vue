@@ -1,9 +1,9 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="文章标题" prop="newsTitel">
+      <el-form-item label="文章标题" prop="newsTitle">
         <el-input
-          v-model="queryParams.newsTitel"
+          v-model="queryParams.newsTitle"
           placeholder="请输入文章标题"
           clearable
           size="small"
@@ -62,7 +62,7 @@
       <el-table-column type="selection" width="55" align="center" />
 <!--      <el-table-column label="主键" align="center" prop="newsId" />-->
       <el-table-column label="序号" type="index" width="50" align="center"/>
-      <el-table-column label="文章标题" align="center" prop="newsTitel" />
+      <el-table-column label="文章标题" align="center" prop="newsTitle" />
       <el-table-column label="文章链接" align="center" prop="newsLink" />
       <el-table-column label="发布时间" align="center" prop="newsReleaseTime" width="180">
         <template slot-scope="scope">
@@ -100,8 +100,8 @@
     <!-- 添加或修改资讯信息对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="文章标题" prop="newsTitel">
-          <el-input v-model="form.newsTitel" placeholder="请输入文章标题" />
+        <el-form-item label="文章标题" prop="newsTitle">
+          <el-input v-model="form.newsTitle" placeholder="请输入文章标题" />
         </el-form-item>
         <el-form-item label="文章链接" prop="newsLink">
           <el-input v-model="form.newsLink" placeholder="请输入文章链接" />
@@ -187,7 +187,7 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        newsTitel: null,
+        newsTitle: null,
       },
       // 表单参数
       form: {
@@ -222,7 +222,7 @@ export default {
     reset() {
       this.form = {
         newsId: null,
-        newsTitel: null,
+        newsTitle: null,
         newsLink: null,
         newsImg: null,
         newsReleaseTime: null,
