@@ -1,9 +1,9 @@
 import request from '@/utils/request'
 
 // 查询自营商品信息列表
-export function listCommodityInfo(query) {
+export function listStockInfo(query) {
   return request({
-    url: '/system/commodityInfo/list',
+    url: '/system/commodityInfo/stockList',
     method: 'get',
     params: query
   })

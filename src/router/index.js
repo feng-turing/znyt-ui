@@ -100,7 +100,7 @@ export const constantRoutes = [
       {
         path: 'typeData/:oneId(\\d+)',
         component: (resolve) => require(['@/views/system/sorttwo/index'], resolve),
-        name: 'Data',
+        name: 'sorttwo',
         meta: { title: '二级分类', icon: '' }
       }
     ]

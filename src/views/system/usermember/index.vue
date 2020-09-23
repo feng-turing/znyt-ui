@@ -67,10 +67,15 @@
 	  <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="usermemberList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="usermemberList" @selection-change="handleSelectionChange" @cell-click="handleAvatarView">
       <el-table-column type="selection" width="55" align="center" />
 <!--      <el-table-column label="主键" align="center" prop="userId" />-->
       <el-table-column label="主键" align="center" type="index" />
+      <el-table-column label="用户头像" align="center" prop="avatar" >
+        <template slot-scope="scope">
+          <img :src="scope.row.avatar" width="20px" height="20px">
+        </template>
+      </el-table-column>
       <el-table-column label="用户名" align="center" prop="userName" />
       <el-table-column label="注册时间" align="center" prop="userLoginTime" width="180">
         <template slot-scope="scope">
@@ -146,7 +151,7 @@
 
           <el-col :span="12">
             <el-form-item label="注册时间" prop="userLoginTime">
-              <el-date-picker clearable size="small" style="width: 200px"
+              <el-date-picker clearable size="small" style="width: 200px" :disabled="true"
                               v-model="form.userLoginTime"
                               type="date"
                               value-format="yyyy-MM-dd"
@@ -182,6 +187,9 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+    <el-dialog :visible.sync="dialogVisible" :modal="false">
+      <img width="100%" :src="dialogImageUrl" alt="">
+    </el-dialog>
   </div>
 </template>
 
@@ -192,6 +200,9 @@ export default {
   name: "Usermember",
   data() {
     return {
+      //看图使用
+      dialogVisible: false,
+      dialogImageUrl: '',
       // 遮罩层
       loading: true,
       // 选中数组
@@ -348,6 +359,13 @@ export default {
       this.download('system/usermember/export', {
         ...this.queryParams
       }, `system_usermember.xlsx`)
+    },
+
+    handleAvatarView(row, column, cell, event) {
+      if (column.property === 'avatar') {
+        this.dialogImageUrl = row.avatar;
+        this.dialogVisible = true;
+      }
     }
   }
 };

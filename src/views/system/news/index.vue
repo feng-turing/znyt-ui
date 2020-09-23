@@ -63,12 +63,13 @@
 <!--      <el-table-column label="主键" align="center" prop="newsId" />-->
       <el-table-column label="序号" type="index" width="50" align="center"/>
       <el-table-column label="文章标题" align="center" prop="newsTitle" />
-      <el-table-column label="文章链接" align="center" prop="newsLink" />
+<!--      <el-table-column label="文章链接" align="center" prop="newsLink" />-->
       <el-table-column label="发布时间" align="center" prop="newsReleaseTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.newsReleaseTime, '{y}-{m}-{d} {h}:{i}') }}</span>
         </template>
       </el-table-column>
+      <el-table-column label="数量" align="center" prop="params.sum" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button

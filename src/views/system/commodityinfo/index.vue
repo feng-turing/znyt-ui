@@ -60,12 +60,22 @@
       </el-col>
       <el-col :span="1.5">
         <el-button
-          type="success"
+          type="warning"
           icon="el-icon-edit"
           size="mini"
           :disabled="multiple"
-          @click="handleBatchRelease"
+          @click="handleBatchRelease('Y')"
         >批量上架
+        </el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="info"
+          icon="el-icon-edit"
+          size="mini"
+          :disabled="multiple"
+          @click="handleBatchRelease('N')"
+        >批量下架
         </el-button>
       </el-col>
       <!--<el-col :span="1.5">
@@ -256,6 +266,16 @@
             <el-form-item label="会员价" >
               <el-input-number v-model="form.commodityMemberPrice" :precision="2" :step="1" :max="99999999" :disabled="isMember" placeholder="请输入会员价"/>
             </el-form-item>
+            <el-form-item label="用优惠卷" prop="commodityIsCoupon" >
+              <el-radio-group v-model="form.commodityIsCoupon" >
+                <el-radio
+                  v-for="dict in commodityIsMemberOptions"
+                  :key="dict.dictValue"
+                  :label="dict.dictValue"
+                >{{ dict.dictLabel }}
+                </el-radio>
+              </el-radio-group>
+            </el-form-item>
           </el-col>
         </el-row>
 
@@ -406,6 +426,9 @@ export default {
         commodityIsMember: [
           {required: true, message: "是否会员不能为空", trigger: "blur"}
         ],
+        commodityIsCoupon: [
+          {required: true, message: "是否会员不能为空", trigger: "blur"}
+        ],
         /*commodityMemberPrice: [
           {required: true, message: "会员价不能为空", trigger: "blur"}
         ],*/
@@ -481,7 +504,7 @@ export default {
         commodityType: null,
         commodityKeyword: null,
         commodityImg: null,
-        commodityIsMember: "0",
+        commodityIsMember: null,
         commodityMemberPrice: null,
         commodityDetailImg: null,
         commodityDetail: null,
@@ -489,7 +512,8 @@ export default {
         createTime: null,
         updateBy: null,
         updateTime: null,
-        remark: null
+        remark: null,
+        commodityIsCoupon: 'N'
       };
       this.resetForm("form");
     },
@@ -615,15 +639,18 @@ export default {
       });
     },
 
-    /** 删除按钮操作 */
-    handleBatchRelease(row) {
-      const commodityIds = row.commodityId || this.ids;
-      this.$confirm('是否确认将选中数据中未上架商品进行上架', "警告", {
+    /** 上下架按钮操作 */
+    handleBatchRelease(status) {
+      const data = {
+        commodityIds: this.ids.join(','),
+        commodityIsRelease: status,
+      }
+      this.$confirm('是否确认将选中数据中商品进行'+(status==='Y'?'上':'下')+'架', "警告", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
       }).then(function () {
-        return releaseCommodityInfo(commodityIds);
+        return releaseCommodityInfo(data);
       }).then(() => {
         this.getList();
         this.msgSuccess("上架成功");
@@ -719,7 +746,6 @@ export default {
       this.detailImgList = []
       done();
     },
-
   }
 };
 </script>

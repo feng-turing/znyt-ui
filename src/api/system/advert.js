@@ -25,7 +25,6 @@ export function addAdvert(data) {
     data: data
   })
 }
-
 // 修改广告信息
 export function updateAdvert(data) {
   return request({
@@ -40,5 +39,12 @@ export function delAdvert(advertId) {
   return request({
     url: '/system/advert/' + advertId,
     method: 'delete'
+  })
+}
+/** 复制新增*/
+export function copyAddAdvert(advertId) {
+  return request({
+    url: '/system/advert/copyAdd/' + advertId,
+    method: 'get',
   })
 }
