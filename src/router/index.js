@@ -107,6 +107,20 @@ export const constantRoutes = [
   },
 
   {
+    path: '/commodity',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: 'stock/:commodityGoodsCode(\\d+)',
+        component: (resolve) => require(['@/views/system/stock/detail'], resolve),
+        name: 'stock',
+        meta: { title: '商品库存'}
+      }
+    ]
+  },
+
+  {
     path: '/job',
     component: Layout,
     hidden: true,

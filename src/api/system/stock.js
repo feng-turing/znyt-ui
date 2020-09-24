@@ -9,6 +9,24 @@ export function listStockInfo(query) {
   })
 }
 
+// 查询自营商品信息列表
+export function addCommodityStock(data) {
+  return request({
+    url: '/system/commodityInfo/addStock',
+    method: 'post',
+    data: data
+  })
+}
+
+// 查询自营商品信息列表
+export function detailStockInfo(query) {
+  return request({
+    url: '/system/commodityInfo/stockDetail',
+    method: 'get',
+    params: query
+  })
+}
+
 // 查询自营商品信息详细
 export function getCommodityInfo(commodityId) {
   return request({

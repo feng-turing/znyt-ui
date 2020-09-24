@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
+    <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="90px">
       <el-form-item label="经销商名称" prop="dealerName">
         <el-input
           v-model="queryParams.dealerName"
@@ -151,12 +151,20 @@
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-row>
           <el-col :span="24">
-<!--            <el-form-item label="经销商id" prop="dealerId">-->
-            <el-form-item label="经销商" prop="dealerId">
-<!--              <el-input v-model="form.dealerId" placeholder="请输入经销商id"/>-->
-              <treeselect v-model="form.dealerId" :options="dealerOptions" :disable-branch-nodes="true" :show-count="true" placeholder="请选择经销商" />
+            <el-form-item label="经销商" prop="dealerId" >
+              <el-select v-model="form.dealerId" multiple placeholder="请选择经销商" style="width: 99.99%" :disabled="dealerStatus">
+                <el-option
+                  v-for="item in this.dealerOptions"
+                  :key="item.dealerId"
+                  :label="item.dealerName"
+                  :value="item.dealerId"
+                  filterable
+                >
+                </el-option>
+              </el-select>
             </el-form-item>
           </el-col>
+
           <!--<el-col :span="12">
             <el-form-item label="经销商名称" prop="dealerName">
               <el-input v-model="form.dealerName" placeholder="请输入经销商名称"/>
@@ -209,12 +217,12 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="商品分类" prop="commodityType">
-              <el-select v-model="form.commodityType" placeholder="请选择商品分类">
+              <el-select v-model="form.commodityType" placeholder="请选择商品分类" >
                 <el-option
                   v-for="sort in commodityTypeOptions"
                   :key="sort.twoId"
                   :label="sort.twoName"
-                  :value="sort.twoName"
+                  :value="sort.twoId"
                 ></el-option>
               </el-select>
             </el-form-item>
@@ -294,8 +302,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item label="详情图片" prop="commodityDetailImg">
-<!--              <el-input v-model="form.commodityDetailImg" placeholder="请输入详情图片"/>-->
+            <el-form-item label="详情图片" >
               <el-upload
                 :headers="header"
                 :action="url"
@@ -327,7 +334,7 @@
 
 <script>
 import {
-  listCommodityInfo, getCommodityInfo, delCommodityInfo, addCommodityInfo, updateCommodityInfo,update2CommodityInfo,  getSortTwoAll, delImg, releaseCommodityInfo } from "@/api/system/commodityInfo";
+  listCommodityInfo, getCommodityInfo, delCommodityInfo, addCommodityInfo, updateCommodityInfo,update2CommodityInfo,  getSortTwoAll, delImg, releaseCommodityInfo, selectDealerList } from "@/api/system/commodityInfo";
 import { treeselect } from "@/api/system/dept";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
@@ -366,11 +373,13 @@ export default {
       // 弹出层标题
       title: "",
       //经销商选择
-      dealerOptions: undefined,
+      dealerOptions: [],
       // 是否显示弹出层
       open: false,
       // 是否弹出商品详情
       openDetail: false,
+      // 经销商下拉选是否禁用
+      dealerStatus: false,
       // 是否上架字典
       commodityIsReleaseOptions: [],
       // 是否会员字典
@@ -385,6 +394,8 @@ export default {
         pageSize: 10,
         dealerName: null,
         commodityName: null,
+        //是否自营默认值:是
+        isSelfSupport: 'Y',
       },
       // 表单参数
       form: {},
@@ -457,7 +468,7 @@ export default {
     /** 查询自营商品信息列表 */
     getList() {
       this.loading = true;
-      this.getTreeselect();
+      this.getDealerList();
       listCommodityInfo(this.queryParams).then(response => {
         this.commodityInfoList = response.rows;
         this.total = response.total;
@@ -466,10 +477,12 @@ export default {
       this.detailImgNewList.length=0;
       this.detailImgDelList.length=0;
     },
-    /** 查询部门下拉树结构 */
-    getTreeselect() {
-      treeselect().then(response => {
-        this.dealerOptions = response.data;
+    /** 查询经销商列表 */
+    getDealerList() {
+      selectDealerList().then(response=>{
+        if (response.code === 200) {
+          this.dealerOptions = response.data;
+        }
       });
     },
 
@@ -539,6 +552,7 @@ export default {
       this.fileList = [];
       this.open = true;
       this.title = "添加自营商品信息";
+      this.dealerStatus = false;
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -552,6 +566,8 @@ export default {
         }];
         this.open = true;
         this.title = "修改自营商品信息";
+        this.form.dealerId = [this.form.dealerId];
+        this.dealerStatus = true;
       });
     },
 
@@ -573,6 +589,8 @@ export default {
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.commodityId != null) {
+            this.form.dealerId = null;
+            this.form.dealerName = null;
             updateCommodityInfo(this.form).then(response => {
               if (response.code === 200) {
                 this.msgSuccess("修改成功");
@@ -581,6 +599,23 @@ export default {
               }
             });
           } else {
+            const dealerIds = this.form.dealerId;
+            const dealerName = [];
+            for (let i = 0; i < dealerIds.length; i++) {
+              const dealerId = dealerIds[i];
+              this.dealerOptions.map(item => {
+                if (item.dealerId === dealerId) {
+                  dealerName.push(item.dealerName);
+                }
+              })
+              /*for (let j = 0; j < this.dealerOptions.length; j++) {
+                const map = this.dealerOptions[j];
+                if (map.dealerId === dealerId) {
+                  dealerName.push(map.dealerName);
+                }
+              }*/
+            }
+            this.form.dealerName = dealerName.join(',');
             addCommodityInfo(this.form).then(response => {
               if (response.code === 200) {
                 this.msgSuccess("新增成功");
@@ -598,17 +633,6 @@ export default {
 
       this.$refs["formDetail"].validate(valid => {
         if (valid) {
-          /*//临时存储图片集合用
-          var imgs = [];
-          //提交前拿到上传的图片集合
-          console.log(this.detailImgList);
-          for (let i = 0; i < this.detailImgList.length; i++) {
-            const response = this.detailImgList[i];
-            const _file_path= response.response.data;
-            imgs.push(_file_path);
-          }
-          //将数组转换成字符串 默认用逗号隔开
-          this.form.commodityDetailImg = imgs.join(',');*/
           this.form.newImgs = this.detailImgNewList;
           this.form.delImgs = this.detailImgDelList;
           if (this.form.commodityId != null) {
@@ -727,7 +751,7 @@ export default {
       }
       //删除临时图片
       delImg(data).then(response => {
-        console.log(response);
+        //console.log(response);
       });
     },
 
@@ -746,6 +770,7 @@ export default {
       this.detailImgList = []
       done();
     },
+
   }
 };
 </script>

@@ -1,33 +1,16 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
-
-      <el-form-item label="产品编号" prop="commodityName">
-        <el-input
-          v-model="queryParams.commodityGoodsCode"
-          placeholder="请输入产品编号"
-          clearable
-          size="small"
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="产品名称" prop="commodityName">
-        <el-input
-          v-model="queryParams.commodityName"
-          placeholder="请输入产品名称"
-          clearable
-          size="small"
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item>
-        <el-button type="cyan" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-      </el-form-item>
-    </el-form>
-
     <el-row :gutter="10" class="mb8">
-      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          icon="el-icon-plus"
+          size="mini"
+          :disabled="multiple"
+          @click="handleAddStock"
+        >批量添加库存
+        </el-button>
+      </el-col>
     </el-row>
 
     <el-table v-loading="loading" :data="stock" @selection-change="handleSelectionChange">
@@ -37,14 +20,22 @@
       <el-table-column label="产品名称" align="center" prop="commodityName"/>
       <el-table-column label="产品规格" align="center" prop="commodityCapacity" />
       <el-table-column label="类别" align="center" prop="commodityType"/>
-      <el-table-column label="商品库存" align="center" :show-overflow-tooltip="true">
-        <template slot-scope="scope">
-          <router-link :to="'/commodity/stock/' + scope.row.commodityGoodsCode" class="link-type">
-            <span>{{ scope.row.commodityStock }}</span>
-          </router-link>
-        </template>
-      </el-table-column>
+      <el-table-column label="经销商" align="center" prop="dealerName"/>
+      <el-table-column label="商品库存" align="center" prop="commodityStock" />
     </el-table>
+
+    <!-- 添加或修改搜索热词对话框 -->
+    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="添加库存" prop="commodityStock">
+          <el-input v-model="form.commodityStock" placeholder="添加库存数" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button @click="cancel">取 消</el-button>
+      </div>
+    </el-dialog>
 
     <pagination
       v-show="total>0"
@@ -59,7 +50,7 @@
 
 <script>
 import {
-  listStockInfo } from "@/api/system/stock";
+  detailStockInfo, addCommodityStock } from "@/api/system/stock";
 import {getToken} from "@/utils/auth";
 
 export default {
@@ -82,8 +73,6 @@ export default {
       stock: [],
       // 弹出层标题
       title: "",
-      //经销商选择
-      dealerOptions: undefined,
       // 是否显示弹出层
       open: false,
       // 是否会员 默认空
@@ -92,33 +81,42 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        commodityName: null,
-        commodityGoodsCode: null,
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
+        commodityStock: [
+          {required: true, message: "新增库存数不能为空", trigger: "blur"}
+        ],
       }
     };
   },
   created() {
+    const commodityGoodsCode = this.$route.params && this.$route.params.commodityGoodsCode;
+    this.queryParams.commodityGoodsCode = commodityGoodsCode;
     this.getList();
   },
   methods: {
     /** 查询自营商品信息列表 */
     getList() {
       this.loading = true;
-      listStockInfo(this.queryParams).then(response => {
+      detailStockInfo(this.queryParams).then(response => {
         this.stock = response.rows;
         this.total = response.total;
         this.loading = false;
       });
+      this.cancel();
     },
 
     // 取消按钮
     cancel() {
       this.open = false;
+      this.form = {
+        commodityGoodsCode: null,
+        commodityStock: null,
+      };
+      this.resetForm("form");
     },
 
     /** 搜索按钮操作 */
@@ -144,6 +142,30 @@ export default {
         ...this.queryParams
       }, `system_commodityInfo.xlsx`)
     },
+    /** 添加库存*/
+    handleAddStock() {
+      this.form.commodityIds = this.ids;
+      this.open = true;
+    },
+
+    /** 提交*/
+    submitForm() {
+      this.$refs["form"].validate(valid => {
+        if (valid) {
+          addCommodityStock(this.form).then(response=>{
+            if (response.code === 200) {
+              this.msgSuccess("添加库存成功");
+              this.open = false;
+              this.getList();
+            } else {
+              this.msgError(response.msg);
+            }
+          })
+        }
+      })
+    }
+
+
 
   }
 };

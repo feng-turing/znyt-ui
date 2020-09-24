@@ -42,7 +42,7 @@
 
    </el-row>-->
 
-    <el-tabs tab-position="left" style="height: 200px;" :before-leave="tabsBefore">
+    <el-tabs tab-position="left" style="height: 100%;" :before-leave="tabsBefore">
       <el-tab-pane label="经销商管理">
         <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
           <el-form-item label="商家名称" prop="dealerName">
@@ -107,7 +107,14 @@
           <el-table-column label="纬度" align="center" prop="dealerLat" />
           <el-table-column label="商家电话" align="center" prop="dealerPhone" />
           <el-table-column label="商家分类" align="center" prop="dealerType" :formatter="dealerTypeFormat" />
-          <el-table-column label="审核结果" align="center" prop="dealerStatus" :formatter="dealerStatusFormat" />
+          <el-table-column label="审核结果" align="center" prop="dealerStatus" >
+            <template slot-scope="scope">
+              <el-tag
+                :type="scope.row.dealerStatus === 0 ? 'primary' : (scope.row.dealerStatus === 1 ? 'success' : 'danger')"
+                disable-transitions>{{dealerStatusFormat(scope.row)}}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="合伙人" align="center" prop="partnerName" />
           <el-table-column label="合伙人推荐码" align="center" prop="dealerPartnerId" />
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
             <template slot-scope="scope">
@@ -168,14 +175,21 @@
         <el-table v-loading="loading" :data="dealerList" @selection-change="handleSelectionChange" @cell-click="handleCellClick">
           <el-table-column type="selection" width="55" align="center" />
           <el-table-column label="主键" align="center" type="index" />
-          <el-table-column label="商家名称" align="center" prop="dealerName" />
-          <el-table-column label="商家地址" align="center" prop="dealerAddress" />
+          <el-table-column label="合伙人名称" align="center" prop="dealerName" />
+          <el-table-column label="合伙人地址" align="center" prop="dealerAddress" />
           <el-table-column label="经度" align="center" prop="dealerLong" />
           <el-table-column label="纬度" align="center" prop="dealerLat" />
-          <el-table-column label="商家电话" align="center" prop="dealerPhone" />
-          <el-table-column label="商家分类" align="center" prop="dealerType" :formatter="dealerTypeFormat" />
-          <el-table-column label="审核结果" align="center" prop="dealerStatus" :formatter="dealerStatusFormat" />
-          <el-table-column label="合伙人推荐码" align="center" prop="dealerPartnerId" />
+          <el-table-column label="合伙人电话" align="center" prop="dealerPhone" />
+<!--          <el-table-column label="商家分类" align="center" prop="dealerType" :formatter="dealerTypeFormat" />-->
+          <el-table-column label="审核结果" align="center" prop="dealerStatus" >
+            <template slot-scope="scope">
+              <el-tag
+                :type="scope.row.dealerStatus === 0 ? 'primary' : (scope.row.dealerStatus === 1 ? 'success' : 'danger')"
+                disable-transitions>{{dealerStatusFormat(scope.row)}}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="数量" align="center" prop="partnerSum" />
+          <el-table-column label="推荐码" align="center" prop="dealerPartnerId" />
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
             <template slot-scope="scope">
               <el-button
@@ -717,7 +731,8 @@ export default {
           this.appeoveTitle = "查看经销商信息";
         });
       }
-    }
+    },
+
   }
 };
 </script>

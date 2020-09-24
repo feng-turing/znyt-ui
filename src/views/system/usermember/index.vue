@@ -73,7 +73,7 @@
       <el-table-column label="主键" align="center" type="index" />
       <el-table-column label="用户头像" align="center" prop="avatar" >
         <template slot-scope="scope">
-          <img :src="scope.row.avatar" width="20px" height="20px">
+          <el-avatar :src="scope.row.avatar">{{scope.row.userName.substr(0,1)}}</el-avatar>
         </template>
       </el-table-column>
       <el-table-column label="用户名" align="center" prop="userName" />

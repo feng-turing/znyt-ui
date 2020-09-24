@@ -78,3 +78,11 @@ export function delImg(query) {
   })
 }
 
+// 上下架自营商品信息
+export function selectDealerList() {
+  return request({
+    url: '/system/dealer/getDealerList',
+    method: 'get',
+  })
+}
+
