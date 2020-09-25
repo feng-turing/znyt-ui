@@ -25,6 +25,26 @@ export function validURL(url) {
 }
 
 /**
+ * 是否手机号码
+ * @param {string} str
+ * @returns {Boolean}
+ */
+export function validPhone(url) {
+  const reg =/^[1][3-9][0-9]{9}$/;
+  return reg.test(url)
+}
+
+/**
+ * 是否身份证号
+ * @param {string} str
+ * @returns {Boolean}
+ */
+export function validIdCard(url) {
+  const reg = /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/;
+  return reg.test(url)
+}
+
+/**
  * @param {string} str
  * @returns {Boolean}
  */
@@ -81,3 +101,31 @@ export function isArray(arg) {
   }
   return Array.isArray(arg)
 }
+
+export function isUrl(rule, value, callback) {
+  if (!value) {
+    return callback(new Error('请输入链接地址'));
+  }
+  setTimeout(() => {
+    if (!validURL(value)) {
+      callback(new Error('请输入正确链接地址'));
+    } else {
+      callback();
+    }
+  }, 1000);
+}
+
+export function isPhone(rule, value, callback) {
+  if (!value) {
+    return callback(new Error('请输入手机号'));
+  }
+  setTimeout(() => {
+    if (!validPhone(value)) {
+      callback(new Error('请输入正确手机号'));
+    } else {
+      callback();
+    }
+  }, 1000);
+}
+
+

@@ -58,7 +58,7 @@
 	  <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="newsList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="newsList" @selection-change="handleSelectionChange" >
       <el-table-column type="selection" width="55" align="center" />
 <!--      <el-table-column label="主键" align="center" prop="newsId" />-->
       <el-table-column label="序号" type="index" width="50" align="center"/>
@@ -150,6 +150,7 @@
 import { listNews, getNews, delNews, addNews, updateNews } from "@/api/system/news";
 import {getToken} from "@/utils/auth";
 import {delImg} from "@/api/system/commodityInfo";
+import {isUrl} from "@/utils/validate";
 
 export default {
   name: "News",
@@ -196,6 +197,28 @@ export default {
       },
       // 表单校验
       rules: {
+        newsTitle: [
+          {required: true, message: '文章标题不能为空', trigger: "blur"},
+        ],
+        newsLink: [
+          {required: true, message: "文章地址不能为空", trigger: "blur"},
+          {validator: isUrl, trigger: 'blur'}
+        ],
+        newsImg: [
+          {required: true, message: "文章图片不能为空", trigger: "blur"},
+        ],
+        newsReleaseTime: [
+          {
+            type: 'array',
+            required: true,
+            message: '请选择日期区间',
+            fields: {
+              //tpye类型试情况而定,所以如果返回的是date就改成date
+              0: { type: 'string', required: true, message: '请选择开始日期' },
+              1: { type: 'string', required: true, message: '请选择结束日期' }
+            }
+          }
+        ],
       }
     };
   },
@@ -255,6 +278,7 @@ export default {
       this.reset();
       this.open = true;
       this.title = "添加资讯信息";
+      this.fileList = [];
     },
     /** 修改按钮操作 */
     handleUpdate(row) {

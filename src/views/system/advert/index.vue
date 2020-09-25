@@ -122,7 +122,7 @@
             filterable
             clearable></el-cascader>
         </el-form-item>
-        <el-form-item label="广告图片" prop="advertImg">
+        <el-form-item label="广告图片" >
           <el-upload ref="upload"
             :headers="header"
             :action="url"
@@ -155,6 +155,7 @@ import { listAdvert, getAdvert, delAdvert, addAdvert, updateAdvert, copyAddAdver
 import { provinceAndCityData, regionData, provinceAndCityDataPlus, regionDataPlus, CodeToText, TextToCode } from 'element-china-area-data'
 import {getToken} from "@/utils/auth";
 import {delImg} from "@/api/system/commodityInfo";
+import { isUrl } from '@/utils/validate'
 
 export default {
   name: "Advert",
@@ -223,14 +224,13 @@ export default {
           }
         ],
         advertLinkUrl: [
-          {required: true, message: "链接地址不能为空", trigger: "blur"}
+          {required: true, message: "链接地址不能为空", trigger: "blur"},
+          {validator: isUrl, trigger: 'blur'}
         ],
         advertArea: [
           {type: 'array',required: true, message: "地区不能为空", trigger: "blur"}
         ],
-        advertImg: [
-          {required: true, message: "图片不能为空", trigger: "blur"}
-        ],
+
       }
     };
   },
@@ -292,6 +292,7 @@ export default {
       this.reset();
       this.open = true;
       this.title = "添加广告信息";
+      this.fileList.length = 0;
     },
 
     /** 复制增加 */
@@ -417,7 +418,7 @@ export default {
       }
       //删除临时图片
       delImg(data).then(response => {
-        console.log(response);
+        //console.log(response);
       });
     },
     advertPutTimeFormat(row, column, cellValue, index) {
