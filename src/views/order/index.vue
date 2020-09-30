@@ -12,16 +12,34 @@
           />
         </el-form-item>
 
-        <el-form-item label="支付方式" prop="orderPayWay">
-          <el-select v-model="queryParams.orderPayWay" placeholder="请输入支付方式" clearable size="small">
-            <el-option
-              v-for="dict in orderPayWayOptions"
-              :key="dict.dictValue"
-              :label="dict.dictLabel"
-              :value="dict.dictValue"
-            />
-          </el-select>
+        <el-form-item label="用户名" prop="params.userName">
+          <el-input
+            v-model="queryParams.params.userName"
+            placeholder="请输入用户名"
+            clearable
+            size="small"
+            @keyup.enter.native="handleQuery"
+          />
         </el-form-item>
+        <el-form-item label="经销商" prop="params.dealerName">
+          <el-input
+            v-model="queryParams.params.dealerName"
+            placeholder="请输入经销商"
+            clearable
+            size="small"
+            @keyup.enter.native="handleQuery"
+          />
+        </el-form-item>
+
+        <el-form-item label="订单日期" prop="orderCreateTime">
+          <el-date-picker
+            v-model="queryParams.orderCreateTime"
+            type="date"
+            placeholder="选择订单日期"
+            value-format="yyyy-MM-dd HH:mm:ss">
+          </el-date-picker>
+        </el-form-item>
+
         <el-form-item label="订单状态" prop="orderStatus">
           <el-select v-model="queryParams.orderStatus" placeholder="请选择订单状态" clearable size="small">
             <el-option
@@ -115,20 +133,20 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" align="center" type="index" />
       <el-table-column label="订单号" align="center" prop="orderNo" />
-      <el-table-column label="订单用户" align="center" prop="userMember.userName" />
-      <el-table-column label="订单经销商" align="center" prop="dealer.dealerName" />
+      <el-table-column label="用户名" align="center" prop="userMember.userName" />
+      <el-table-column label="经销商" align="center" prop="dealer.dealerName" />
 <!--      <el-table-column label="订单商品" align="center" prop="commodity.commodityName" />-->
-      <el-table-column label="订单原价" align="center" prop="orderOriginalPrice" />
-      <el-table-column label="订单实收" align="center" prop="orderRealPrice" />
+      <el-table-column label="原价" align="center" prop="orderOriginalPrice" />
+      <el-table-column label="实收" align="center" prop="orderRealPrice" />
       <el-table-column label="支付方式" align="center" prop="orderPayWay" :formatter="orderPayWayFormat" />
-      <el-table-column label="订单创建时间" align="center" prop="orderCreateTime" width="180">
+      <el-table-column label="创建时间" align="center" prop="orderCreateTime" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.orderCreateTime, '{y}-{m}-{d}') }}</span>
+          <span>{{ parseTime(scope.row.orderCreateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="订单提货时间" align="center" prop="orderExtractTime" width="180">
+      <el-table-column label="提货时间" align="center" prop="orderExtractTime" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.orderExtractTime, '{y}-{m}-{d}') }}</span>
+          <span>{{ parseTime(scope.row.orderExtractTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="订单状态" align="center" prop="orderStatus" :formatter="orderStatusFormat" />
@@ -269,11 +287,12 @@ export default {
         pageNum: 1,
         pageSize: 10,
         orderNo: null,
-        orderUserId: null,
-        orderDealerId: null,
-        orderCommodityId: null,
-        orderPayWay: null,
+        orderCreateTime: null,
         orderStatus: null,
+        params: {
+          userName: null,
+          dealerName: null,
+        }
       },
       // 表单参数
       form: {},
