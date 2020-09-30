@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询用户会员列表
 export function listUsermember(query) {
   return request({
-    url: '/system/usermember/list',
+    url: '/usercenter/usermember/list',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listUsermember(query) {
 // 查询用户会员详细
 export function getUsermember(userId) {
   return request({
-    url: '/system/usermember/' + userId,
+    url: '/usercenter/usermember/' + userId,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getUsermember(userId) {
 // 新增用户会员
 export function addUsermember(data) {
   return request({
-    url: '/system/usermember',
+    url: '/usercenter/usermember',
     method: 'post',
     data: data
   })
@@ -29,7 +29,7 @@ export function addUsermember(data) {
 // 修改用户会员
 export function updateUsermember(data) {
   return request({
-    url: '/system/usermember',
+    url: '/usercenter/usermember',
     method: 'put',
     data: data
   })
@@ -38,7 +38,7 @@ export function updateUsermember(data) {
 // 用户注册成会员
 export function userLoginMember(data) {
   return request({
-    url: '/system/usermember/loginMember/'+data,
+    url: '/usercenter/usermember/loginMember/'+data,
     method: 'get',
   })
 }
@@ -46,7 +46,7 @@ export function userLoginMember(data) {
 // 删除用户会员
 export function delUsermember(userId) {
   return request({
-    url: '/system/usermember/' + userId,
+    url: '/usercenter/usermember/' + userId,
     method: 'delete'
   })
 }

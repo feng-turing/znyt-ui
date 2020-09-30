@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询经销商信息列表
 export function listDealer(query) {
   return request({
-    url: '/system/dealer/list',
+    url: '/usercenter/dealer/list',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listDealer(query) {
 // 查询经销商信息详细
 export function getDealer(dealerId) {
   return request({
-    url: '/system/dealer/' + dealerId,
+    url: '/usercenter/dealer/' + dealerId,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getDealer(dealerId) {
 // 新增经销商信息
 export function addDealer(data) {
   return request({
-    url: '/system/dealer',
+    url: '/usercenter/dealer',
     method: 'post',
     data: data
   })
@@ -29,7 +29,7 @@ export function addDealer(data) {
 // 修改经销商信息
 export function updateDealer(data) {
   return request({
-    url: '/system/dealer',
+    url: '/usercenter/dealer',
     method: 'put',
     data: data
   })
@@ -38,7 +38,7 @@ export function updateDealer(data) {
 // 删除经销商信息
 export function delDealer(dealerId) {
   return request({
-    url: '/system/dealer/' + dealerId,
+    url: '/usercenter/dealer/' + dealerId,
     method: 'delete'
   })
 }
