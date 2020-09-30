@@ -117,7 +117,7 @@
       <el-table-column label="订单号" align="center" prop="orderNo" />
       <el-table-column label="订单用户" align="center" prop="userMember.userName" />
       <el-table-column label="订单经销商" align="center" prop="dealer.dealerName" />
-      <el-table-column label="订单商品" align="center" prop="commodity.commodityName" />
+<!--      <el-table-column label="订单商品" align="center" prop="commodity.commodityName" />-->
       <el-table-column label="订单原价" align="center" prop="orderOriginalPrice" />
       <el-table-column label="订单实收" align="center" prop="orderRealPrice" />
       <el-table-column label="支付方式" align="center" prop="orderPayWay" :formatter="orderPayWayFormat" />
