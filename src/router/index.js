@@ -99,7 +99,7 @@ export const constantRoutes = [
     children: [
       {
         path: 'typeData/:oneId(\\d+)',
-        component: (resolve) => require(['@/views/system/sorttwo/index'], resolve),
+        component: (resolve) => require(['@/views/sorttwo/index'], resolve),
         name: 'sorttwo',
         meta: { title: '二级分类', icon: '' }
       }
@@ -113,7 +113,7 @@ export const constantRoutes = [
     children: [
       {
         path: 'stock/:commodityGoodsCode(\\d+)',
-        component: (resolve) => require(['@/views/system/stock/detail'], resolve),
+        component: (resolve) => require(['@/views/stock/detail'], resolve),
         name: 'stock',
         meta: { title: '商品库存'}
       }
@@ -126,7 +126,7 @@ export const constantRoutes = [
     children: [
       {
         path: 'detail',
-        component: (resolve) => require(['@/views/system/order/detail'], resolve),
+        component: (resolve) => require(['@/views/order/detail'], resolve),
         name: 'orderDetail',
         meta: { title: '订单详情' }
       }

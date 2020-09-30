@@ -149,7 +149,7 @@
 </template>
 <script>
   import { listOrder, getOrder, delOrder, addOrder, updateOrder, getOrderDetail } from "@/api/system/order";
-  import { formatDate, formatTime, getQueryObject,} from "@/utils/index";
+  import { formatDate, formatTime, getQueryObject,} from "@/utils";
 
   export default {
     name: "Order",
