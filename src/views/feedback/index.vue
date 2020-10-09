@@ -83,6 +83,12 @@
           <el-button
             size="mini"
             type="text"
+            icon="el-icon-search"
+            @click="onPreview(scope.row)"
+          >意见图片</el-button>
+          <el-button
+            size="mini"
+            type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
             v-hasPermi="['system:feedback:remove']"
@@ -132,16 +138,26 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+    <el-image-viewer
+      v-if="showViewer"
+      :on-close="closeViewer"
+      :url-list="srcList" />
   </div>
 </template>
 
 <script>
+  // 导入组件
+import ElImageViewer from 'element-ui/packages/image/src/image-viewer'
 import { listFeedback, getFeedback, delFeedback, addFeedback, updateFeedback } from "@/api/system/feedback";
 
 export default {
   name: "Feedback",
+  components: { ElImageViewer },
   data() {
     return {
+      //商品详情图片
+      srcList: [],
+      showViewer: false,
       // 遮罩层
       loading: true,
       // 选中数组
@@ -286,7 +302,15 @@ export default {
       this.download('system/feedback/export', {
         ...this.queryParams
       }, `system_feedback.xlsx`)
-    }
+    },
+
+    onPreview(row) {
+      this.srcList = row.feedbackImgs.split(',');
+      this.showViewer = true;
+    },
+    closeViewer() {
+      this.showViewer = false
+    },
   }
 };
 </script>

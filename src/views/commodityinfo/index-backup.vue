@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="90px">
-      <el-form-item label="合伙人名称" prop="dealerName">
+      <el-form-item label="经销商名称" prop="dealerName">
         <el-input
           v-model="queryParams.dealerName"
-          placeholder="请输入合伙人名称"
+          placeholder="请输入经销商名称"
           clearable
           size="small"
           @keyup.enter.native="handleQuery"
@@ -36,29 +36,81 @@
         >新增
         </el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="success"
+          icon="el-icon-edit"
+          size="mini"
+          :disabled="single"
+          @click="handleUpdate"
+          v-hasPermi="['system:commodityInfo:edit']"
+        >修改
+        </el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="danger"
+          icon="el-icon-delete"
+          size="mini"
+          :disabled="multiple"
+          @click="handleDelete"
+          v-hasPermi="['system:commodityInfo:remove']"
+        >删除
+        </el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="warning"
+          icon="el-icon-edit"
+          size="mini"
+          :disabled="multiple"
+          @click="handleBatchRelease('Y')"
+        >批量上架
+        </el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="info"
+          icon="el-icon-edit"
+          size="mini"
+          :disabled="multiple"
+          @click="handleBatchRelease('N')"
+        >批量下架
+        </el-button>
+      </el-col>
+      <!--<el-col :span="1.5">
+        <el-button
+          type="warning"
+          icon="el-icon-download"
+          size="mini"
+          @click="handleExport"
+          v-hasPermi="['system:commodityInfo:export']"
+        >导出
+        </el-button>
+      </el-col>-->
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="commodityInfoList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center"/>
       <el-table-column label="序号" type="index" width="50" align="center"/>
-      <!--      <el-table-column label="合伙人id" align="center" prop="dealerId" />-->
-      <el-table-column label="合伙人名称" align="center" prop="dealerName"/>
+      <!--      <el-table-column label="经销商id" align="center" prop="dealerId" />-->
+      <el-table-column label="经销商名称" align="center" prop="dealerName"/>
       <el-table-column label="商品名称" align="center" prop="commodityName"/>
       <el-table-column label="商品货号" align="center" prop="commodityGoodsCode"/>
       <el-table-column label="商品分类" align="center" prop="commodityType"/>
       <el-table-column label="商品价格" align="center" prop="commodityPrice"/>
-      <el-table-column label="商品规格" align="center" prop="commodityCapacity" />
       <el-table-column label="商品库存" align="center" prop="commodityStock"/>
       <el-table-column label="会员价" align="center" prop="commodityMemberPrice"/>
-      <!--<el-table-column label="是否上架" align="center" prop="commodityIsRelease" :formatter="commodityIsReleaseFormat"/>
-      <el-table-column label="关键词" align="center" prop="commodityKeyword" />
-      <el-table-column label="商品图片" align="center" prop="commodityImg" />
-      <el-table-column label="是否会员" align="center" prop="commodityIsMember" :formatter="commodityIsMemberFormat" />
-      <el-table-column label="详情图片" align="center" prop="commodityDetailImg" />
-      <el-table-column label="商品详述" align="center" prop="commodityDetail" />-->
+      <el-table-column label="是否上架" align="center" prop="commodityIsRelease" :formatter="commodityIsReleaseFormat"/>
+      <!--      <el-table-column label="商品规格" align="center" prop="commodityCapacity" />-->
+      <!--      <el-table-column label="关键词" align="center" prop="commodityKeyword" />-->
+      <!--      <el-table-column label="商品图片" align="center" prop="commodityImg" />-->
+      <!--      <el-table-column label="是否会员" align="center" prop="commodityIsMember" :formatter="commodityIsMemberFormat" />-->
+      <!--      <el-table-column label="详情图片" align="center" prop="commodityDetailImg" />-->
+      <!--      <el-table-column label="商品详述" align="center" prop="commodityDetail" />-->
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-        <template slot-scope="scope" v-if="scope.row.commodityReleaseSum===0">
+        <template slot-scope="scope">
           <el-button
             size="mini"
             type="text"
@@ -99,8 +151,8 @@
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-row>
           <el-col :span="24">
-            <el-form-item label="合伙人" prop="dealerId" >
-              <el-select v-model="form.dealerId" multiple placeholder="请选择合伙人" style="width: 99.99%" :disabled="dealerStatus">
+            <el-form-item label="经销商" prop="dealerId" >
+              <el-select v-model="form.dealerId" multiple placeholder="请选择经销商" style="width: 99.99%" :disabled="dealerStatus">
                 <el-option
                   v-for="item in this.dealerOptions"
                   :key="item.dealerId"
@@ -114,8 +166,8 @@
           </el-col>
 
           <!--<el-col :span="12">
-            <el-form-item label="合伙人名称" prop="dealerName">
-              <el-input v-model="form.dealerName" placeholder="请输入合伙人名称"/>
+            <el-form-item label="经销商名称" prop="dealerName">
+              <el-input v-model="form.dealerName" placeholder="请输入经销商名称"/>
             </el-form-item>
           </el-col>-->
         </el-row>
@@ -150,20 +202,6 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="商品分类" prop="commodityType">
-              <el-select v-model="form.commodityType" placeholder="请选择商品分类" >
-                <el-option
-                  v-for="sort in commodityTypeOptions"
-                  :key="sort.twoId"
-                  :label="sort.twoName"
-                  :value="sort.twoId"
-                ></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <!--<el-row>
-          <el-col :span="12">
             <el-form-item label="是否上架" prop="commodityIsRelease">
               <el-select v-model="form.commodityIsRelease" placeholder="请选择是否上架">
                 <el-option
@@ -175,12 +213,26 @@
               </el-select>
             </el-form-item>
           </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="商品分类" prop="commodityType">
+              <el-select v-model="form.commodityType" placeholder="请选择商品分类" >
+                <el-option
+                  v-for="sort in commodityTypeOptions"
+                  :key="sort.twoId"
+                  :label="sort.twoName"
+                  :value="sort.twoId"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
           <el-col :span="12">
             <el-form-item label="关键词" prop="commodityKeyword">
               <el-input v-model="form.commodityKeyword" placeholder="请输入关键词"/>
             </el-form-item>
           </el-col>
-        </el-row>-->
+        </el-row>
         <el-row>
           <el-col :span="12">
             <!--<el-form-item label="商品图片" prop="commodityImg">
@@ -320,13 +372,13 @@ export default {
       commodityInfoList: [],
       // 弹出层标题
       title: "",
-      //合伙人选择
+      //经销商选择
       dealerOptions: [],
       // 是否显示弹出层
       open: false,
       // 是否弹出商品详情
       openDetail: false,
-      // 合伙人下拉选是否禁用
+      // 经销商下拉选是否禁用
       dealerStatus: false,
       // 是否上架字典
       commodityIsReleaseOptions: [],
@@ -342,16 +394,18 @@ export default {
         pageSize: 10,
         dealerName: null,
         commodityName: null,
+        //是否自营默认值:是
+        isSelfSupport: 'Y',
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
         dealerId: [
-          {required: true, message: "合伙人不能为空", trigger: "blur"}
+          {required: true, message: "经销商不能为空", trigger: "blur"}
         ],
         dealerName: [
-          {required: true, message: "合伙人名称不能为空", trigger: "blur"}
+          {required: true, message: "经销商名称不能为空", trigger: "blur"}
         ],
         commodityName: [
           {required: true, message: "商品名称不能为空", trigger: "blur"}
@@ -423,7 +477,7 @@ export default {
       this.detailImgNewList.length=0;
       this.detailImgDelList.length=0;
     },
-    /** 查询合伙人列表 */
+    /** 查询经销商列表 */
     getDealerList() {
       selectDealerList().then(response=>{
         if (response.code === 200) {
@@ -503,8 +557,8 @@ export default {
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
-      const id = row.id || this.ids
-      getCommodityInfo(id).then(response => {
+      const commodityId = row.commodityId || this.ids
+      getCommodityInfo(commodityId).then(response => {
         this.form = response.data;
         this.fileList=[{
           name: this.form.commodityName,
@@ -520,9 +574,9 @@ export default {
     /** 行添加商品详情操作*/
     handleCommodityDetail(row) {
       this.reset();
-      const id = row.id || this.ids
+      const commodityId = row.commodityId || this.ids
 
-      getCommodityInfo(id).then(response => {
+      getCommodityInfo(commodityId).then(response => {
         this.form = response.data;
         this.detailImgList = this.form.commodityDetailImg == null || this.form.commodityDetailImg == "" ? [] : JSON.parse(this.form.commodityDetailImg);
         this.openDetail = true;
@@ -581,7 +635,7 @@ export default {
         if (valid) {
           this.form.newImgs = this.detailImgNewList;
           this.form.delImgs = this.detailImgDelList;
-          if (this.form.id != null) {
+          if (this.form.commodityId != null) {
             update2CommodityInfo(this.form).then(response => {
               if (response.code === 200) {
                 this.msgSuccess("添加商品详情成功");
@@ -595,13 +649,13 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      const ids = row.id || this.ids;
-      this.$confirm('是否确认删除自营商品信息编号为"' + ids + '"的数据项?', "警告", {
+      const commodityIds = row.commodityId || this.ids;
+      this.$confirm('是否确认删除自营商品信息编号为"' + commodityIds + '"的数据项?', "警告", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
       }).then(function () {
-        return delCommodityInfo(ids);
+        return delCommodityInfo(commodityIds);
       }).then(() => {
         this.getList();
         this.msgSuccess("删除成功");
