@@ -1,50 +1,18 @@
 <template>
   <div class="app-container">
-    <!--<el-row :gutter="10" class="mb8">
-    <el-col :span="1.5">
-       <el-button
-         type="primary"
-         icon="el-icon-plus"
-         size="mini"
-         @click="handleAdd"
-         v-hasPermi="['system:dealer:add']"
-       >新增</el-button>
-     </el-col>
-     <el-col :span="1.5">
-       <el-button
-         type="success"
-         icon="el-icon-edit"
-         size="mini"
-         :disabled="single"
-         @click="handleUpdate"
-         v-hasPermi="['system:dealer:edit']"
-       >修改</el-button>
-     </el-col>
-     <el-col :span="1.5">
-       <el-button
-         type="danger"
-         icon="el-icon-delete"
-         size="mini"
-         :disabled="multiple"
-         @click="handleDelete"
-         v-hasPermi="['system:dealer:remove']"
-       >删除</el-button>
-     </el-col>
-     <el-col :span="1.5">
-       <el-button
-         type="warning"
-         icon="el-icon-download"
-         size="mini"
-         @click="handleExport"
-         v-hasPermi="['system:dealer:export']"
-       >导出</el-button>
-     </el-col>
-
-   </el-row>-->
-
     <el-tabs tab-position="left" style="height: 100%;" :before-leave="tabsBefore">
       <el-tab-pane label="经销商管理">
-        <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
+        <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="90px">
+          <el-form-item label="地区" prop="advertArea" >
+            <el-cascader
+              :options="options"
+              :props="props"
+              v-model="tempCity"
+              :collapse-tags="false"
+              show-all-levels
+              filterable
+              clearable></el-cascader>
+          </el-form-item>
           <el-form-item label="商家名称" prop="dealerName">
             <el-input
               v-model="queryParams.dealerName"
@@ -54,15 +22,7 @@
               @keyup.enter.native="handleQuery"
             />
           </el-form-item>
-          <el-form-item label="商家电话" prop="dealerPhone">
-            <el-input
-              v-model="queryParams.dealerPhone"
-              placeholder="请输入商家电话"
-              clearable
-              size="small"
-              @keyup.enter.native="handleQuery"
-            />
-          </el-form-item>
+
           <el-form-item label="商家分类" prop="dealerType">
             <el-select v-model="queryParams.dealerType" placeholder="请选择商家分类" clearable size="small">
               <el-option
@@ -98,6 +58,10 @@
           </el-form-item>
         </el-form>
         <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+        <div><span>
+          <span style="color: #409EFF; font-weight: bold">【{{ cityName }}】</span>共有<span
+          style="color: #F56C6C; font-weight: bold">【{{ total }}】</span>家经销商入驻
+        </span></div>
         <el-table v-loading="loading" :data="dealerList" @selection-change="handleSelectionChange" @cell-click="handleCellClick">
           <el-table-column type="selection" width="55" align="center" />
           <el-table-column label="主键" align="center" type="index" />
@@ -138,6 +102,16 @@
       </el-tab-pane>
       <el-tab-pane label="合伙人管理">
         <el-form :model="queryParams" ref="queryFormPartnel" :inline="true" v-show="showSearch" label-width="90px">
+          <el-form-item label="地区" prop="advertArea" >
+            <el-cascader
+              :options="options"
+              :props="props"
+              v-model="tempCity"
+              :collapse-tags="false"
+              show-all-levels
+              filterable
+              clearable></el-cascader>
+          </el-form-item>
           <el-form-item label="合伙人名称" prop="dealerName" >
             <el-input
               v-model="queryParams.dealerName"
@@ -474,11 +448,17 @@
 
 <script>
 import { listDealer, getDealer, delDealer, addDealer, updateDealer } from "@/api/system/dealer";
+import { provinceAndCityData, regionData, provinceAndCityDataPlus, regionDataPlus, CodeToText, TextToCode } from 'element-china-area-data'
 
 export default {
   name: "Dealer",
   data() {
     return {
+      cityName: '所有市',
+      //地区省市联动
+      props: { multiple: false },
+      options: provinceAndCityData,
+      tempCity: null,
       // 遮罩层
       loading: true,
       // 选中数组
@@ -541,9 +521,20 @@ export default {
     /** 查询经销商信息列表 */
     getList() {
       this.loading = true;
+      //获取当前选择的市，进行模糊查询
+      if (this.tempCity != null) {
+        this.queryParams.dealerAddress = CodeToText[this.tempCity[this.tempCity.length-1]]
+      } else {
+        this.queryParams.dealerAddress = null;
+      }
       listDealer(this.queryParams).then(response => {
         this.dealerList = response.rows;
         this.total = response.total;
+        if (this.queryParams.dealerAddress == null || this.queryParams.dealerAddress == 'undefined') {
+          this.cityName = '所有市';
+        } else {
+          this.cityName = this.queryParams.dealerAddress;
+        }
         this.loading = false;
       });
     },
@@ -567,6 +558,7 @@ export default {
     },
     // 表单重置
     reset() {
+      this.tempCity= null;
       this.form = {
         dealerId: null,
         dealerName: null,
@@ -604,6 +596,7 @@ export default {
     },
     /** 重置按钮操作 */
     resetQuery() {
+      this.tempCity= null;
       this.resetForm("queryForm");
       this.resetForm("queryFormPartnel");
       this.handleQuery();

@@ -283,7 +283,6 @@
 <script>
 import {
   listCommodityInfo, getCommodityInfo, delCommodityInfo, addCommodityInfo, updateCommodityInfo,update2CommodityInfo,  getSortTwoAll, delImg, releaseCommodityInfo, selectDealerList } from "@/api/system/commodityInfo";
-import { treeselect } from "@/api/system/dept";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import {getToken} from "@/utils/auth";
@@ -409,12 +408,17 @@ export default {
     getSortTwoAll().then(response => {
       this.commodityTypeOptions = response.data;
     });
+    /** 查询合伙人列表 */
+    selectDealerList().then(response=>{
+      if (response.code === 200) {
+        this.dealerOptions = response.data;
+      }
+    });
   },
   methods: {
     /** 查询自营商品信息列表 */
     getList() {
       this.loading = true;
-      this.getDealerList();
       listCommodityInfo(this.queryParams).then(response => {
         this.commodityInfoList = response.rows;
         this.total = response.total;
@@ -422,14 +426,6 @@ export default {
       });
       this.detailImgNewList.length=0;
       this.detailImgDelList.length=0;
-    },
-    /** 查询合伙人列表 */
-    getDealerList() {
-      selectDealerList().then(response=>{
-        if (response.code === 200) {
-          this.dealerOptions = response.data;
-        }
-      });
     },
 
     // 是否上架字典翻译

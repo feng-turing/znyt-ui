@@ -78,11 +78,14 @@ export function delImg(query) {
   })
 }
 
-// 上下架自营商品信息
+// 查询合伙人列表
 export function selectDealerList() {
   return request({
     url: '/usercenter/dealer/getDealerList',
     method: 'get',
+    params: {
+      isPartner: 'Y'
+    }
   })
 }
 
