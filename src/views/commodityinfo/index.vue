@@ -35,6 +35,14 @@
           v-hasPermi="['system:commodityInfo:add']"
         >新增
         </el-button>
+        <el-button
+          type="success"
+          icon="el-icon-circle-plus"
+          size="mini"
+          :disabled="multiple"
+          @click="handleAddStock"
+        >增加库存
+        </el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
@@ -49,14 +57,20 @@
       <el-table-column label="商品分类" align="center" prop="commodityType"/>
       <el-table-column label="商品价格" align="center" prop="commodityPrice"/>
       <el-table-column label="商品规格" align="center" prop="commodityCapacity" />
-      <el-table-column label="商品库存" align="center" prop="commodityStock"/>
+      <el-table-column label="历史库存总量" align="center" prop="commodityStock"/>
+      <el-table-column label="未发放商品量" align="center" :formatter="handleNotRelease"/>
+      <el-table-column label="经销商库存" align="center" >
+        <template slot-scope="scope">
+          <p>发布库存:{{ scope.row.commodityReleaseSum }}</p>
+          <p>剩余库存:
+            <router-link :to="{path: '/commdityinfo/dealercommodityInfo', query: {id: scope.row.id}}" class="link-type">
+              <span>{{ scope.row.commodityDealerSum }}</span>
+            </router-link>
+          </p>
+        </template>
+      </el-table-column>
       <el-table-column label="会员价" align="center" prop="commodityMemberPrice"/>
-      <!--<el-table-column label="是否上架" align="center" prop="commodityIsRelease" :formatter="commodityIsReleaseFormat"/>
-      <el-table-column label="关键词" align="center" prop="commodityKeyword" />
-      <el-table-column label="商品图片" align="center" prop="commodityImg" />
-      <el-table-column label="是否会员" align="center" prop="commodityIsMember" :formatter="commodityIsMemberFormat" />
-      <el-table-column label="详情图片" align="center" prop="commodityDetailImg" />
-      <el-table-column label="商品详述" align="center" prop="commodityDetail" />-->
+
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope" v-if="scope.row.commodityReleaseSum===0">
           <el-button
@@ -277,6 +291,18 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+    <!-- 增加库存 -->
+    <el-dialog title="增加库存" :visible.sync="stockOpen" width="500px" append-to-body>
+      <el-form ref="stockForm" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="添加库存" >
+          <el-input-number v-model="form.commodityStock" :min="1" :max="99999999" :controls="true" controls-position="right"/>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitAddStock">确 定</el-button>
+        <el-button @click="cancel">取 消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -286,6 +312,7 @@ import {
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import {getToken} from "@/utils/auth";
+import {addCommodityStock} from "@/api/system/stock";
 
 export default {
   name: "CommodityInfo",
@@ -303,6 +330,7 @@ export default {
       dialogImageUrl: '',
       detailImgNewList:[],
       detailImgDelList:[],
+      stockOpen: false,
       // 遮罩层
       loading: true,
       // 选中数组
@@ -394,6 +422,7 @@ export default {
         commodityDetail: [
           {required: true, message: "商品详述不能为空", trigger: "blur"}
         ],
+
       }
     };
   },
@@ -440,6 +469,7 @@ export default {
     cancel() {
       this.open = false;
       this.openDetail = false;
+      this.stockOpen = false;
       this.reset();
       this.fileList = [];
       this.detailImgList = [];
@@ -452,7 +482,7 @@ export default {
         dealerName: null,
         commodityName: null,
         commodityGoodsCode: null,
-        commodityStock: null,
+        commodityStock: 1,
         commodityCapacity: null,
         commodityPrice: null,
         commodityIsRelease: null,
@@ -484,7 +514,7 @@ export default {
     },
     // 多选框选中数据
     handleSelectionChange(selection) {
-      this.ids = selection.map(item => item.commodityId)
+      this.ids = selection.map(item => item.id)
       this.single = selection.length !== 1
       this.multiple = !selection.length
     },
@@ -642,6 +672,39 @@ export default {
         this.isMember = true;
         this.form.commodityMemberPrice = 0;
       }
+    },
+    //未发放商品量计算
+    handleNotRelease(row, column, cellValue, index) {
+      return row.commodityStock - row.commodityReleaseSum;
+    },
+
+    //新增库存
+    handleAddStock(){
+      this.form = {
+        commodityStock: 1,
+      };
+      this.resetForm("form");
+      this.stockOpen = true;
+    },
+
+    submitAddStock() {
+      this.$refs["stockForm"].validate(valid => {
+        if (valid) {
+          const data = {
+            ids: this.ids,
+            commodityStock: this.form.commodityStock,
+          }
+          addCommodityStock(data).then(response=>{
+            if (response.code === 200) {
+              this.msgSuccess("添加库存成功");
+              this.stockOpen = false;
+              this.getList();
+            } else {
+              this.msgError(response.msg);
+            }
+          })
+        }
+      })
     },
 
     //upload file 函数
