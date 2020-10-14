@@ -523,17 +523,17 @@ export default {
       this.loading = true;
       //获取当前选择的市，进行模糊查询
       if (this.tempCity != null) {
-        this.queryParams.dealerAddress = CodeToText[this.tempCity[this.tempCity.length-1]]
+        this.queryParams.dealerArea = CodeToText[this.tempCity[this.tempCity.length-1]]
       } else {
-        this.queryParams.dealerAddress = null;
+        this.queryParams.dealerArea = null;
       }
       listDealer(this.queryParams).then(response => {
         this.dealerList = response.rows;
         this.total = response.total;
-        if (this.queryParams.dealerAddress == null || this.queryParams.dealerAddress == 'undefined') {
+        if (this.queryParams.dealerArea == null || this.queryParams.dealerArea == 'undefined') {
           this.cityName = '所有市';
         } else {
-          this.cityName = this.queryParams.dealerAddress;
+          this.cityName = this.queryParams.dealerArea;
         }
         this.loading = false;
       });

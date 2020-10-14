@@ -1,10 +1,15 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="活动类型(1:一元抢购,5:五折特惠)" prop="activityType">
-        <el-select v-model="queryParams.activityType" placeholder="请选择活动类型(1:一元抢购,5:五折特惠)" clearable size="small">
-          <el-option label="请选择字典生成" value="" />
-        </el-select>
+    <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="90px">
+      <el-form-item label="经销商地区">
+        <el-cascader
+          :options="options"
+          :props="props"
+          v-model="tempCity"
+          :collapse-tags="false"
+          show-all-levels
+          filterable
+          clearable></el-cascader>
       </el-form-item>
       <el-form-item>
         <el-button type="cyan" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -27,10 +32,14 @@
 
     <el-table v-loading="loading" :data="activitygoodsList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="活动主键" align="center" prop="activityId" />
-      <el-table-column label="活动商品主键" align="center" prop="activityCommodityId" />
-      <el-table-column label="活动价格" align="center" prop="activityPrice" />
-      <el-table-column label="活动类型(1:一元抢购,5:五折特惠)" align="center" prop="activityType" />
+      <el-table-column label="序号" align="center" type="index" />
+      <el-table-column label="活动地区" align="center" :formatter="handleActivityArea"/>
+      <el-table-column label="商品货号" align="center" prop="goodsInfoVo.commodityGoodsCode" />
+      <el-table-column label="商品名称" align="center" prop="goodsInfoVo.commodityName" />
+      <el-table-column label="经销商" align="center" prop="goodsInfoVo.dealer.dealerName" />
+      <el-table-column label="商品原价（元）" align="center" prop="goodsInfoVo.commodityPrice" />
+      <el-table-column label="商品库存" align="center" prop="goodsInfoVo.commodityStock" />
+      <el-table-column label="活动价格（元）" align="center" prop="activityPrice" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -61,17 +70,9 @@
 
     <!-- 添加或修改活动商品对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="活动商品主键" prop="activityCommodityId">
-          <el-input v-model="form.activityCommodityId" placeholder="请输入活动商品主键" />
-        </el-form-item>
-        <el-form-item label="活动价格" prop="activityPrice">
-          <el-input v-model="form.activityPrice" placeholder="请输入活动价格" />
-        </el-form-item>
-        <el-form-item label="活动类型(1:一元抢购,5:五折特惠)" prop="activityType">
-          <el-select v-model="form.activityType" placeholder="请选择活动类型(1:一元抢购,5:五折特惠)">
-            <el-option label="请选择字典生成" value="" />
-          </el-select>
+      <el-form ref="form" :model="form" :rules="rules" label-width="120px">
+        <el-form-item label="商品活动价格" prop="activityPrice">
+          <el-input-number v-model="form.activityPrice" :precision="2" :step="1" :max="99999999" :controls="false" /><span>元</span>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -80,19 +81,25 @@
       </div>
     </el-dialog>
 
-    <partner-goods-detail ref="detail" />
+    <activity-goods-detail ref="detail" @ok="detailOk" />
   </div>
 </template>
 
 <script>
 import { listActivitygoods, getActivitygoods, delActivitygoods, addActivitygoods, updateActivitygoods } from "@/api/marketing/activitygoods";
-import partnerGoodsDetail from "../../commodityinfo/partnerGoodsDetail";
+import activityGoodsDetail from "../../commodityinfo/activityGoodsDetail";
+import {CodeToText, provinceAndCityData} from "element-china-area-data";
 
 export default {
   name: "Activitygoods",
-  components: {partnerGoodsDetail},
+  components: {activityGoodsDetail},
   data() {
     return {
+      //地区省市联动
+      props: { multiple: false },
+      options: provinceAndCityData,
+      tempCity: null,
+
       // 遮罩层
       loading: true,
       // 选中数组
@@ -115,12 +122,15 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        activityType: null
+        activityType: 5
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
+        activityPrice: [
+          {required: true, message: "活动价格不能为空", trigger: "blur"}
+        ]
       }
     };
   },
@@ -131,6 +141,13 @@ export default {
     /** 查询活动商品列表 */
     getList() {
       this.loading = true;
+      //获取当前选择的市，进行模糊查询
+      if (this.tempCity != null) {
+        this.queryParams.searchValue = CodeToText[this.tempCity[this.tempCity.length-1]]
+      } else {
+        this.queryParams.searchValue = null;
+      }
+
       listActivitygoods(this.queryParams).then(response => {
         this.activitygoodsList = response.rows;
         this.total = response.total;
@@ -159,6 +176,7 @@ export default {
     },
     /** 重置按钮操作 */
     resetQuery() {
+      this.tempCity= null;
       this.resetForm("queryForm");
       this.handleQuery();
     },
@@ -171,7 +189,7 @@ export default {
     /** 新增按钮操作 */
     handleAdd() {
       //ref 写在标签上时：this.$refs.名字  获取的是标签对应的dom元素 ref 写在组件上时：这时候获取到的是 子组件（比如counter）的引用
-      this.$refs.detail.show('添加活动商品');
+      this.$refs.detail.show('添加活动商品',this.form.activityId);
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -187,6 +205,10 @@ export default {
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
+          if (this.form.activityPrice === 0){
+            this.msgError('请输入大于 0 的活动价格');
+            return;
+          }
           if (this.form.activityId != null) {
             updateActivitygoods(this.form).then(response => {
               if (response.code === 200) {
@@ -226,6 +248,44 @@ export default {
       this.download('marketing/activitygoods/export', {
         ...this.queryParams
       }, `marketing_activitygoods.xlsx`)
+    },
+    //活动地区截取 经销商地区截出市名称
+    handleActivityArea(row, column, cellValue, index) {
+      const data = row.goodsInfoVo.dealer.dealerArea;
+      return data.substring(data.indexOf('省')+1,data.indexOf('市')+1 )
+    },
+
+    //弹出页回调
+    detailOk(data) {
+      data.activityType = '1';
+      const dealerArea = data.dealerArea.substring(data.dealerArea.indexOf('省')+1,data.dealerArea.indexOf('市')+1);
+      listActivitygoods({searchValue: dealerArea}).then(result =>{
+        if (result.code === 200) {
+          if (result.total > 0) {
+            this.msgError("该地区下已经存在优惠商品，请删除原优惠商品，再添加");
+          } else {
+            this.$refs.detail.open = false;
+            this.$refs.detail.reset();
+            if (data.activityId != null) {
+              updateActivitygoods(data).then(response => {
+                if (response.code === 200) {
+                  this.msgSuccess("修改成功");
+                  this.open = false;
+                  this.getList();
+                }
+              });
+            } else {
+              addActivitygoods(data).then(response => {
+                if (response.code === 200) {
+                  this.msgSuccess("新增成功");
+                  this.open = false;
+                  this.getList();
+                }
+              });
+            }
+          }
+        }
+      })
     }
   }
 };

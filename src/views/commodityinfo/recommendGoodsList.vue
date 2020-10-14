@@ -35,15 +35,9 @@
           <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
         </el-form-item>
       </el-form>
-      <el-table v-loading="loading" :data="commodityInfoList" @selection-change="handleSelectionChange">
-        <el-table-column label="序号" width="60px" align="center" header-align="center">
-          <template slot-scope="scope">
-            <el-radio :label="scope.$index+1" v-model="templateRadio"
-                      @change.native="getTemplateRow(scope.$index,scope.row)" style="margin-left:10px;">&nbsp;
-            </el-radio>
-          </template>
-        </el-table-column>
-
+      <el-table ref="table" v-loading="loading" :data="commodityInfoList" @selection-change="handleSelectionChange" :row-key="(row)=>{ return row.commodityId}" >
+        <el-table-column type="selection" width="55" align="center" :reserve-selection="true"/>
+        <el-table-column label="序号" align="center" type="index"/>
         <el-table-column label="经销商名称" align="center" prop="dealer.dealerName"/>
         <el-table-column label="经销商地址" align="center" prop="dealer.dealerAddress"/>
         <el-table-column label="商品名称" align="center" prop="commodityName"/>
@@ -55,7 +49,7 @@
       </el-table>
 
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="handleAddActivityGoods">确 定</el-button>
+        <el-button type="primary" @click="handleOk">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
       </div>
 
@@ -70,11 +64,11 @@
   </div>
 </template>
 
+
 <script>
   import {
     listDealerCommodityInfo,getDealerCommodityInfo,updateCommodityInfo } from "@/api/system/dealerCommodityInfo";
-  import {
-    releaseCommodityInfo } from "@/api/system/stock";
+
   import {CodeToText, provinceAndCityData} from "element-china-area-data";
   export default {
     name: "CommodityInfo",
@@ -118,15 +112,15 @@
           commodityName: null,
           dealerName: null,
           searchValue: null,
-          isSelfSupport: 'Y',
-          commodityStatus: 1,
+          //isSelfSupport: 'Y',
+          //commodityStatus: 1,
         },
         // 表单参数
         form: {},
         // 表单校验
         rules: {
         },
-
+        data: [],
         //经销商选择
         dealerOptions: [],
         // 经销商下拉选是否禁用
@@ -140,14 +134,9 @@
         //详情图集合
         detailImgViews: [],
 
-        //选中数据对象
-        templateSelection:{},
-        //是否被选中，默认都是否
-        templateRadio: false,
       };
     },
     created() {
-      this.getList();
       this.getDicts("sys_yes_no").then(response => {
         this.commodityIsReleaseOptions = response.data;
       });
@@ -157,7 +146,7 @@
     },
     methods: {
       /** 查询自营商品信息列表 */
-      getList() {
+      async getList() {
         this.loading = true;
         //获取当前选择的市，进行模糊查询
         if (this.tempCity != null) {
@@ -165,12 +154,12 @@
         } else {
           this.queryParams.searchValue = null;
         }
-
-        listDealerCommodityInfo(this.queryParams).then(response => {
+        await listDealerCommodityInfo(this.queryParams).then(response => {
           this.commodityInfoList = response.rows;
           this.total = response.total;
           this.loading = false;
         });
+       return true;
       },
 
       // 审核状态
@@ -220,18 +209,34 @@
       },
 
       //弹出层打开
-      show() {
-        this.getList();
-        this.open = true;
+      show(ids) {
+       this.getList().then(result=>{
+         this.open = true;
+         console.log(result);
+         if (result) {
+           this.$nextTick(()=>{
+             for (let i = 0; i < this.commodityInfoList.length; i++) {
+               const row = this.commodityInfoList[i];
+               console.log(row);
+               for (let j = 0; j < ids.length; j++) {
+                 const id = ids[j];
+                 console.log(id);
+                 if (row.commodityId == id) {
+                   console.log(this.$refs.table);
+                   this.$refs.table.toggleRowSelection(row, true);
+                 }
+               }
+             }
+           })
+
+         }
+       });
       },
 
-      //获取选中数据
-      getTemplateRow(index,row){
-        this.templateSelection = row;
-      },
-
-      handleAddActivityGoods() {
-        this.$emit('ok', this.templateSelection);
+      handleOk() {
+        this.$emit('ok', this.ids);
+        this.open = false;
+        this.$refs.table.clearSelection();
       }
     }
   };

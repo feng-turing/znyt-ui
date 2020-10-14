@@ -41,6 +41,7 @@
           type="primary"
           icon="el-icon-top"
           size="mini"
+          :disabled="multiple"
           @click="handleBatchRelease"
         >批量上架
         </el-button>
@@ -48,6 +49,7 @@
           type="danger"
           icon="el-icon-top"
           size="mini"
+          :disabled="multiple"
           @click="handleBatchRelease({}, 'N')"
         >批量下架
         </el-button>

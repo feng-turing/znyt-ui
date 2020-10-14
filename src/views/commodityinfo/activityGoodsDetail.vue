@@ -2,76 +2,74 @@
   <div class="app-container">
     <!-- 添加或修改自营商品信息对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="800px" append-to-body>
-      <el-form ref="form" :model="form" label-width="120px">
+      <el-form ref="form" :rules="rules" :model="form" label-width="120px">
         <el-row>
           <el-col :span="12">
-            <el-form-item label="商品名称">
+            <el-form-item label="选择商品">
               <el-image :src="addImg" style="width: 80px; height: 80px" @click="handleSelectAddGoods"></el-image>
             </el-form-item>
-
           </el-col>
-
+          <el-col :span="12">
+            <el-form-item label="经销商" >
+              <el-input v-model="form.dealerName" :disabled="true"></el-input>
+            </el-form-item>
+          </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
             <el-form-item label="商品名称">
-              <el-input v-model="form.commodityName" />
+              <el-input v-model="form.commodityName" :disabled="true" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="商品货号" >
-              <el-input v-model="form.commodityGoodsCode"/>
+              <el-input v-model="form.commodityGoodsCode" :disabled="true"/>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
             <el-form-item label="商品价格" >
-              <el-input-number v-model="form.commodityPrice" :precision="2" :step="1" :max="99999999" :controls="false" />
+              <el-input-number v-model="form.commodityPrice" :precision="2" :step="1" :max="99999999" :controls="false" :disabled="true" /><span>元</span>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="商品库存" >
-              <el-input-number v-model="form.commodityStock" :min="1" :max="99999999" :controls="false"/>
+              <el-input-number v-model="form.commodityStock" :min="1" :max="99999999" :controls="false" :disabled="true"/>
             </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <!--<el-form-item label="商品图片" prop="commodityImg">
-              <el-input v-model="form.commodityImg" placeholder="请输入商品图片"/>
-            </el-form-item>-->
-            <el-form-item label="商品图片" v-model="form.comoodityImg">
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="经销商" v-model="form.dealerName"/>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="24">
             <el-form-item label="商品详情" >
-              <el-input type="textarea" v-model="form.commodityDetail" rows="3" />
+              <el-input type="textarea" v-model="form.commodityDetail" rows="3"  :disabled="true"/>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="商品活动价格" prop="activityPrice">
+              <el-input-number v-model="form.activityPrice" :precision="2" :step="1" :max="99999999" :controls="false" /><span>元</span>
             </el-form-item>
           </el-col>
         </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
-<!--        <el-button type="primary" @click="submitForm">确 定</el-button>-->
+        <el-button type="primary" @click="handleSubmitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
-    <partner-goods-list ref="list" @ok="handleAddGoods"/>
+    <activity-goods-list ref="list" @ok="handleAddGoods"/>
   </div>
 </template>
 
 <script>
   import {getSortTwoAll, selectDealerList} from "@/api/system/commodityInfo";
   import addImg from '@/assets/image/add.jpg'
-  import partnerGoodsList from './partnerGoodsList'
+  import activityGoodsList from './activityGoodsList'
   export default {
     name: "CommodityInfo",
-    components: {partnerGoodsList},
+    components: {activityGoodsList},
     data() {
       return {
         // 遮罩层
@@ -105,6 +103,11 @@
         },
         // 表单参数
         form: {},
+        rules: {
+          activityPrice: [
+            {required: true, message: "活动价格不能为空", trigger: "blur"}
+          ]
+        },
 
         //经销商选择
         dealerOptions: [],
@@ -116,6 +119,12 @@
         detailImgViews: [],
         //添加商品图片按钮
         addImg,
+        // 提交表单
+        submitForm: {
+          activityCommodityId: null,
+          activityPrice: null,
+          activityId: null,
+        }
       };
     },
     created() {
@@ -143,9 +152,10 @@
     },
     methods: {
       /** 查询自营商品信息列表 */
-      show(title) {
+      show(title, id) {
         this.title = title;
         this.open = true;
+        this.submitForm.activityId = id;
       },
       // 是否上架字典翻译
       commodityIsReleaseFormat(row, column) {
@@ -162,12 +172,39 @@
         this.reset();
       },
 
+      // 表单重置
+      reset() {
+        this.addImg = addImg;
+        this.form = {};
+        this.submitForm = {},
+        this.resetForm("form");
+      },
+      //点击添加商品图片按钮
       handleSelectAddGoods(){
         this.$refs.list.show();
       },
 
+      //商品列表页点击确定 回调参数
       handleAddGoods(row) {
-        console.log(row);
+        this.form = row;
+        this.submitForm.activityCommodityId = row.commodityId;
+        this.addImg = row.commodityImg;
+      },
+
+      //提交
+      handleSubmitForm() {
+        if (this.submitForm.activityCommodityId == null) {
+          this.msgError('请选择商品');
+          return;
+        } else if (this.form.activityPrice === 0){
+          this.msgError('请输入大于 0 的活动价格');
+          return;
+        }
+        this.submitForm.dealerArea = this.form.dealer.dealerArea;
+        this.submitForm.activityPrice = this.form.activityPrice;
+        this.$emit('ok', this.submitForm);
+        /*this.open = false;
+        this.reset();*/
       }
     }
   };
