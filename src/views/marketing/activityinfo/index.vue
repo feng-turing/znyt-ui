@@ -46,7 +46,7 @@
           v-hasPermi="['marketing:activityInfo:remove']"
         >删除</el-button>
       </el-col>
-      <el-col :span="1.5">
+      <!--<el-col :span="1.5">
         <el-button
           type="warning"
           icon="el-icon-download"
@@ -54,7 +54,7 @@
           @click="handleExport"
           v-hasPermi="['marketing:activityInfo:export']"
         >导出</el-button>
-      </el-col>
+      </el-col>-->
 	  <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -86,7 +86,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -98,36 +98,84 @@
     <!-- 添加或修改活动信息对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="活动地区" prop="activityArea">
-          <el-input v-model="form.activityArea" placeholder="请输入活动地区" />
-        </el-form-item>
-        <el-form-item label="活动地区名称" prop="activityAreaName">
-          <el-input v-model="form.activityAreaName" placeholder="请输入活动地区名称" />
-        </el-form-item>
-        <el-form-item label="广告图" prop="activityAdvertImg">
-          <el-input v-model="form.activityAdvertImg" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="上下架时间" prop="beginEndTime">
-          <el-input v-model="form.beginEndTime" placeholder="请输入上下架时间" />
-        </el-form-item>
-        <el-form-item label="活动规则描述" prop="activityRuleDescribe">
-          <el-input v-model="form.activityRuleDescribe" placeholder="请输入活动规则描述" />
-        </el-form-item>
-        <el-form-item label="活动状态">
-          <el-radio-group v-model="form.activityStatus">
-            <el-radio
-              v-for="dict in activityStatusOptions"
-              :key="dict.dictValue"
-              :label="dict.dictValue"
-            >{{dict.dictLabel}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="活动类型" prop="activityType">
-          <el-input v-model="form.activityType" placeholder="请输入活动类型" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remart">
-          <el-input v-model="form.remart" placeholder="请输入备注" />
-        </el-form-item>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="活动地区" prop="activityArea">
+              <el-cascader
+                :options="options"
+                :props="props"
+                v-model="form.activityArea"
+                :collapse-tags="false"
+                show-all-levels
+                filterable
+                clearable></el-cascader>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="广告图" prop="activityAdvertImg">
+              <el-input v-model="form.activityAdvertImg" placeholder="请输入广告图" />
+            </el-form-item>
+            <el-form-item label="广告图" prop="activityAdvertImg">
+              <el-upload
+                class="upload-demo"
+                ref="upload"
+                :action="url"
+                :headers="header"
+                accept="image/jpeg,image/jpg,image/png"
+                :before-upload="beforeUpload"
+                :before-remove="beforeRemove"
+                :on-remove="handleRemove"
+                :on-success="handleSeccess"
+                :on-error="handleError"
+                :file-list="fileList"
+                list-type="picture"
+                :limit=1
+              >
+                <el-button slot="trigger" size="small" type="primary">选取广告图</el-button>
+                <div slot="tip" class="el-upload__tip">只能上传jpg/png文件</div>
+              </el-upload>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="活动时间" prop="beginEndTime">
+              <el-date-picker
+                v-model="form.beginEndTime"
+                type="datetimerange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                format="yyyy-MM-dd HH:mm"
+                value-format="yyyy-MM-dd HH:mm:ss"
+              >
+              </el-date-picker>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="规则描述" prop="activityRuleDescribe">
+              <el-input type="textarea" rows="3" v-model="form.activityRuleDescribe" placeholder="请输入规则描述" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="活动状态">
+              <el-radio-group v-model="form.activityStatus">
+                <el-radio
+                  v-for="dict in activityStatusOptions"
+                  :key="dict.dictValue"
+                  :label="dict.dictValue"
+                >{{dict.dictLabel}}</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -139,11 +187,23 @@
 
 <script>
 import { listActivityInfo, getActivityInfo, delActivityInfo, addActivityInfo, updateActivityInfo } from "@/api/marketing/activityInfo";
+import {provinceAndCityData} from "element-china-area-data";
+import {delImg} from "@/api/system/commodityInfo";
+import {getToken} from "@/utils/auth";
 
 export default {
   name: "ActivityInfo",
   data() {
     return {
+      //地区省市联动
+      props: { multiple: false },
+      options: provinceAndCityData,
+      header: {"Authorization": 'Bearer ' + getToken()},
+      //上传图片
+      fileList: [],
+      //表单提交url
+      url: process.env.VUE_APP_BASE_API + '/system/file/uploadImg/activity',
+
       // 遮罩层
       loading: true,
       // 选中数组
@@ -174,6 +234,24 @@ export default {
       form: {},
       // 表单校验
       rules: {
+        activityArea: [
+          {required: true, message: "活动地区不能为空", trigger: "blur"}
+        ],
+        activityAdvertImg: [
+          {required: true, message: "广告图不能为空", trigger: "blur"}
+        ],
+        beginEndTime: [
+          {
+            type: 'array',
+            required: true,
+            message: '请选择日期区间',
+            fields: {
+              //tpye类型试情况而定,所以如果返回的是date就改成date
+              0: { type: 'string', required: true, message: '请选择开始日期' },
+              1: { type: 'string', required: true, message: '请选择结束日期' }
+            }
+          }
+        ],
       }
     };
   },
@@ -249,6 +327,8 @@ export default {
       const id = row.id || this.ids
       getActivityInfo(id).then(response => {
         this.form = response.data;
+        this.form.activityArea = this.form.activityArea.split(',');
+        this.form.beginEndTime = this.form.beginEndTime.split(',');
         this.open = true;
         this.title = "修改活动信息";
       });
@@ -257,6 +337,14 @@ export default {
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
+          console.log(this.form.activityArea );
+          console.log(this.form.beginEndTime );
+          if (this.form.activityArea != null && this.form.activityArea != '' && this.form.activityArea != undefined) {
+            this.form.activityArea = this.form.activityArea.join(',');
+          }
+          if (this.form.beginEndTime != null && this.form.beginEndTime != '' && this.form.beginEndTime != undefined) {
+            this.form.beginEndTime = this.form.beginEndTime.join(',');
+          }
           if (this.form.id != null) {
             updateActivityInfo(this.form).then(response => {
               if (response.code === 200) {
@@ -296,7 +384,58 @@ export default {
       this.download('marketing/activityInfo/export', {
         ...this.queryParams
       }, `marketing_activityInfo.xlsx`)
-    }
+    },
+
+    //upload file 函数
+    handleSeccess(response, file, fileList1) {
+      if (response.code === 200) {
+        //如果商品信息dialog打开,就是商品标题图
+        if (this.open) {
+          this.form.activityAdvertImg = response.data;
+          this.fileList = fileList1;
+        }
+        //this.$refs.upload.clearFiles();
+        this.msgSuccess("提交成功");
+      } else {
+        this.msgError("提交失败,请稍后重试");
+      }
+    },
+
+    handleError() {
+      this.msgError("提交失败,请稍后重试");
+    },
+
+    handleRemove(file1, fileList1) {
+      //如果商品信息dialog打开,就是商品标题图
+      if (this.open) {
+        this.form.activityAdvertImg = null;
+        this.fileList = fileList1;
+      }
+    },
+
+    beforeRemove(file1, fileList1) {//上传文件变化时
+      if (file1.response == undefined || file1.response == null || file1.response == '') {
+        return;
+      }
+      const data = {
+        delImgPath: file1.response.data
+      }
+      //删除临时图片
+      delImg(data).then(response => {
+        //console.log(response);
+      });
+    },
+
+    //上传文件提交时
+    beforeUpload(file) {
+      return true;
+    },
+    //dialog框 关闭时触发
+    dialogBeforeClose(done) {
+      this.reset();
+      this.fileList = [];
+      done();
+    },
   }
 };
 </script>
