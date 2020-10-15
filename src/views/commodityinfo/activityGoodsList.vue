@@ -126,19 +126,6 @@
         rules: {
         },
 
-        //经销商选择
-        dealerOptions: [],
-        // 经销商下拉选是否禁用
-        dealerStatus: false,
-        //通过不通过按钮是否显示
-        approveBtnOpen: true,
-        //审批意见不可编辑
-        opinionOpen: false,
-        //详情第一张图
-        detailImgView: '',
-        //详情图集合
-        detailImgViews: [],
-
         //选中数据对象
         templateSelection:{},
         //是否被选中，默认都是否

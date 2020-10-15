@@ -1,15 +1,43 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="推荐关键词" prop="recommendKeyword">
+    <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="100px">
+      <el-form-item label="经销商地区">
+        <el-cascader
+          :options="options"
+          :props="props"
+          v-model="tempCity"
+          :collapse-tags="false"
+          show-all-levels
+          filterable
+          clearable></el-cascader>
+      </el-form-item>
+      <el-form-item label="经销商名称" prop="goodsInfoVo.dealer.dealerName">
         <el-input
-          v-model="queryParams.recommendKeyword"
-          placeholder="请输入推荐关键词"
+          v-model="queryParams.goodsInfoVo.dealer.dealerName"
+          placeholder="请输入经销商名称"
           clearable
           size="small"
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
+        <el-form-item label="商品货号" prop="goodsInfoVo.commodityGoodsCode">
+          <el-input
+            v-model="queryParams.goodsInfoVo.commodityGoodsCode"
+            placeholder="请输入经销商名称"
+            clearable
+            size="small"
+            @keyup.enter.native="handleQuery"
+          />
+      </el-form-item>
+        <el-form-item label="商品名称" prop="goodsInfoVo.commodityName">
+          <el-input
+            v-model="queryParams.goodsInfoVo.commodityName"
+            placeholder="请输入商品名称"
+            clearable
+            size="small"
+            @keyup.enter.native="handleQuery"
+          />
+        </el-form-item>
       <el-form-item>
         <el-button type="cyan" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -31,11 +59,13 @@
 
     <el-table v-loading="loading" :data="recommendgoodsList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="推荐id" align="center" prop="recommendId" />
-      <el-table-column label="推荐商品id" align="center" prop="recommendGoodsId" />
-      <el-table-column label="推荐排序" align="center" prop="recommendSort" />
-      <el-table-column label="推荐关键词" align="center" prop="recommendKeyword" />
-      <el-table-column label="推荐状态" align="center" prop="recommendStatus" :formatter="recommendStatusFormat" />
+      <el-table-column label="序号" align="center" type="index" />
+      <el-table-column label="地区" align="center" :formatter="handleActivityArea"/>
+      <el-table-column label="商品货号" align="center" prop="goodsInfoVo.commodityGoodsCode" />
+      <el-table-column label="商品名称" align="center" prop="goodsInfoVo.commodityName" />
+      <el-table-column label="经销商" align="center" prop="goodsInfoVo.dealer.dealerName" />
+      <el-table-column label="商品原价（元）" align="center" prop="goodsInfoVo.commodityPrice" />
+      <el-table-column label="商品库存" align="center" prop="goodsInfoVo.commodityStock" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -66,25 +96,33 @@
 
     <!-- 添加或修改首页推荐商品对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="推荐商品id" prop="recommendGoodsId">
-          <el-input v-model="form.recommendGoodsId" placeholder="请输入推荐商品id" />
-        </el-form-item>
-        <el-form-item label="推荐排序" prop="recommendSort">
-          <el-input v-model="form.recommendSort" placeholder="请输入推荐排序" />
-        </el-form-item>
-        <el-form-item label="推荐关键词" prop="recommendKeyword">
-          <el-input v-model="form.recommendKeyword" placeholder="请输入推荐关键词" />
-        </el-form-item>
-        <el-form-item label="推荐状态">
-          <el-radio-group v-model="form.recommendStatus">
-            <el-radio
-              v-for="dict in recommendStatusOptions"
-              :key="dict.dictValue"
-              :label="dict.dictValue"
-            >{{dict.dictLabel}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
+      <el-form ref="form" :model="form" :rules="rules" label-width="100px">
+        <el-row>
+          <el-col>
+            <el-form-item label="推荐排序" prop="recommendSort">
+              <el-input-number v-model="form.recommendSort" :controls="false"/>
+            </el-form-item>
+          </el-col>
+          <el-col>
+          <el-form-item label="推荐关键词" prop="recommendKeyword">
+            <el-input v-model="form.recommendKeyword"/>
+          </el-form-item>
+          </el-col>
+          <el-col>
+          <el-form-item label="推荐状态">
+            <el-radio-group v-model="form.recommendStatus">
+              <el-radio
+                v-for="dict in recommendStatusOptions"
+                :key="dict.dictValue"
+                :label="dict.dictValue"
+              >{{dict.dictLabel}}</el-radio>
+            </el-radio-group>
+          </el-form-item>
+          </el-col>
+        </el-row>
+
+
+
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -98,12 +136,18 @@
 <script>
 import { listRecommendgoods, getRecommendgoods, delRecommendgoods, addRecommendgoods, updateRecommendgoods } from "@/api/marketing/recommendgoods";
 import recommendGoodsList from "../../commodityinfo/recommendGoodsList";
+import {CodeToText, provinceAndCityData} from "element-china-area-data";
 
 export default {
   name: "Recommendgoods",
   components: {recommendGoodsList},
   data() {
     return {
+      //地区省市联动
+      props: { multiple: false },
+      options: provinceAndCityData,
+      tempCity: null,
+
       // 遮罩层
       loading: true,
       // 选中数组
@@ -128,7 +172,13 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        recommendKeyword: null,
+        goodsInfoVo: {
+          commodityGoodsCode: null,
+          commodityName: null,
+          dealer:{
+            dealerName: null,
+          }
+        }
       },
       // 表单参数
       form: {},
@@ -147,6 +197,12 @@ export default {
     /** 查询首页推荐商品列表 */
     getList() {
       this.loading = true;
+      //获取当前选择的市，进行模糊查询
+      if (this.tempCity != null) {
+        this.queryParams.searchValue = CodeToText[this.tempCity[this.tempCity.length-1]]
+      } else {
+        this.queryParams.searchValue = null;
+      }
       listRecommendgoods(this.queryParams).then(response => {
         this.recommendgoodsList = response.rows;
         this.total = response.total;
@@ -180,6 +236,7 @@ export default {
     },
     /** 重置按钮操作 */
     resetQuery() {
+      this.tempCity= null;
       this.resetForm("queryForm");
       this.handleQuery();
     },
@@ -195,7 +252,8 @@ export default {
       this.open = true;
       this.title = "添加首页推荐商品";*/
       //ref 写在标签上时：this.$refs.名字  获取的是标签对应的dom元素 ref 写在组件上时：这时候获取到的是 子组件（比如counter）的引用
-      this.$refs.list.show([1,2,3,4,5])
+      //子组件方法
+      this.$refs.list.show()
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -252,9 +310,22 @@ export default {
       }, `marketing_recommendgoods.xlsx`)
     },
 
+    //活动地区截取 经销商地区截出市名称
+    handleActivityArea(row, column, cellValue, index) {
+      const data = row.goodsInfoVo.dealer.dealerArea;
+      return data.substring(data.indexOf('省')+1,data.indexOf('市')+1 )
+    },
+
     /** list界面回调*/
     handleListOK(ids) {
-      console.log(ids);
+      if (ids != null && ids != '')
+      addRecommendgoods({remark: ids}).then(response => {
+        if (response.code === 200) {
+          this.msgSuccess("新增成功");
+          this.open = false;
+          this.getList();
+        }
+      });
     }
   }
 };

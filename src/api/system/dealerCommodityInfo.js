@@ -35,5 +35,14 @@ export function listCommodityInfoByActivity(query) {
   })
 }
 
+// 查询商品信息列表(首页推荐)
+export function listCommodityInfoByRecommend(query) {
+  return request({
+    url: '/commodity/commodityInfo/recommendList',
+    method: 'get',
+    params: query
+  })
+}
+
 
 

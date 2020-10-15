@@ -67,7 +67,7 @@
 
 <script>
   import {
-    listDealerCommodityInfo,getDealerCommodityInfo,updateCommodityInfo } from "@/api/system/dealerCommodityInfo";
+    listCommodityInfoByRecommend } from "@/api/system/dealerCommodityInfo";
 
   import {CodeToText, provinceAndCityData} from "element-china-area-data";
   export default {
@@ -121,18 +121,6 @@
         rules: {
         },
         data: [],
-        //经销商选择
-        dealerOptions: [],
-        // 经销商下拉选是否禁用
-        dealerStatus: false,
-        //通过不通过按钮是否显示
-        approveBtnOpen: true,
-        //审批意见不可编辑
-        opinionOpen: false,
-        //详情第一张图
-        detailImgView: '',
-        //详情图集合
-        detailImgViews: [],
 
       };
     },
@@ -154,7 +142,7 @@
         } else {
           this.queryParams.searchValue = null;
         }
-        await listDealerCommodityInfo(this.queryParams).then(response => {
+        await listCommodityInfoByRecommend(this.queryParams).then(response => {
           this.commodityInfoList = response.rows;
           this.total = response.total;
           this.loading = false;
@@ -209,32 +197,27 @@
       },
 
       //弹出层打开
-      show(ids) {
+      show() {
        this.getList().then(result=>{
-         this.open = true;
-         console.log(result);
          if (result) {
-           this.$nextTick(()=>{
+           this.open = true;
+           /*this.$nextTick(()=>{
              for (let i = 0; i < this.commodityInfoList.length; i++) {
                const row = this.commodityInfoList[i];
-               console.log(row);
                for (let j = 0; j < ids.length; j++) {
                  const id = ids[j];
-                 console.log(id);
                  if (row.commodityId == id) {
-                   console.log(this.$refs.table);
                    this.$refs.table.toggleRowSelection(row, true);
                  }
                }
              }
-           })
-
+           })*/
          }
        });
       },
 
       handleOk() {
-        this.$emit('ok', this.ids);
+        this.$emit('ok', this.ids.join(','));
         this.open = false;
         this.$refs.table.clearSelection();
       }
