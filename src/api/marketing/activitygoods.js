@@ -4,8 +4,8 @@ import request from '@/utils/request'
 export function listActivitygoods(query) {
   return request({
     url: '/marketing/activitygoods/list',
-    method: 'get',
-    params: query
+    method: 'post',
+    data: query
   })
 }
 

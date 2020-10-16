@@ -59,17 +59,17 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
-    <activity-goods-list ref="list" @ok="handleAddGoods"/>
+    <activity-goods-list-view ref="list" @ok="handleAddGoods"/>
   </div>
 </template>
 
 <script>
   import {getSortTwoAll, selectDealerList} from "@/api/system/commodityInfo";
   import addImg from '@/assets/image/add.jpg'
-  import activityGoodsList from './activityGoodsList'
+  import activityGoodsListView from './activityGoodsListView'
   export default {
     name: "CommodityInfo",
-    components: {activityGoodsList},
+    components: {activityGoodsListView},
     data() {
       return {
         // 遮罩层

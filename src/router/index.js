@@ -133,6 +133,19 @@ export const constantRoutes = [
     ]
   },
 
+  {
+    path: '/goods',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: 'list',
+        component: (resolve) => require(['@/views/commodityinfo/activityGoodsList2'], resolve),
+        name: 'goodsList',
+        meta: { title: '商品设置' }
+      }
+    ]
+  },
 
   {
     path: '/job',

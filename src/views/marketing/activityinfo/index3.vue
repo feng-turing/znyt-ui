@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
+    <!--<el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="活动地区名称" prop="activityAreaName">
         <el-input
           v-model="queryParams.activityAreaName"
@@ -14,7 +14,7 @@
         <el-button type="cyan" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
       </el-form-item>
-    </el-form>
+    </el-form>-->
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
@@ -55,16 +55,16 @@
           v-hasPermi="['marketing:activityInfo:export']"
         >导出</el-button>
       </el-col>-->
-	  <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="activityInfoList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="活动地区" align="center" prop="activityArea" />
-      <el-table-column label="活动地区名称" align="center" prop="activityAreaName" />
-      <el-table-column label="广告图" align="center" prop="activityAdvertImg" />
-      <el-table-column label="上下架时间" align="center" prop="beginEndTime" />
+      <el-table-column label="主键" align="center" type="index"/>
+      <!--      <el-table-column label="活动地区" align="center" prop="activityArea" />-->
+      <el-table-column label="活动地区" align="center" prop="activityAreaName" />
+      <!--      <el-table-column label="广告图" align="center" prop="activityAdvertImg" />-->
+      <el-table-column label="上下架时间" align="center" prop="beginEndTime" :formatter="handleTimeFormatter"/>
       <el-table-column label="活动规则描述" align="center" prop="activityRuleDescribe" />
       <el-table-column label="活动状态" align="center" prop="activityStatus" :formatter="activityStatusFormat" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -72,16 +72,23 @@
           <el-button
             size="mini"
             type="text"
+            icon="el-icon-goods"
+            @click="handleGoodsSetting(scope.row)"
+          >商品设置</el-button>
+
+          <el-button
+            size="mini"
+            type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
             v-hasPermi="['marketing:activityInfo:edit']"
           >修改</el-button>
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-delete"
-            @click="handleDelete(scope.row)"
-            v-hasPermi="['marketing:activityInfo:remove']"
+          <el-button v-show="scope.row.remark == '0' "
+                     size="mini"
+                     type="text"
+                     icon="el-icon-delete"
+                     @click="handleDelete(scope.row)"
+                     v-hasPermi="['marketing:activityInfo:remove']"
           >删除</el-button>
         </template>
       </el-table-column>
@@ -114,9 +121,6 @@
         </el-row>
         <el-row>
           <el-col :span="24">
-            <el-form-item label="广告图" prop="activityAdvertImg">
-              <el-input v-model="form.activityAdvertImg" placeholder="请输入广告图" />
-            </el-form-item>
             <el-form-item label="广告图" prop="activityAdvertImg">
               <el-upload
                 class="upload-demo"
@@ -187,8 +191,8 @@
 
 <script>
 import { listActivityInfo, getActivityInfo, delActivityInfo, addActivityInfo, updateActivityInfo } from "@/api/marketing/activityInfo";
-import {provinceAndCityData} from "element-china-area-data";
-import {delImg} from "@/api/system/commodityInfo";
+import {CodeToText, provinceAndCityData} from "element-china-area-data";
+import {delImg} from "@/utils/file";
 import {getToken} from "@/utils/auth";
 
 export default {
@@ -203,6 +207,9 @@ export default {
       fileList: [],
       //表单提交url
       url: process.env.VUE_APP_BASE_API + '/system/file/uploadImg/activity',
+      //图片相关数据 new未新增,del为删除
+      newImgs: [],
+      delImgs: [],
 
       // 遮罩层
       loading: true,
@@ -228,7 +235,7 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        activityAreaName: null,
+        activityType: 2,
       },
       // 表单参数
       form: {},
@@ -320,6 +327,7 @@ export default {
       this.reset();
       this.open = true;
       this.title = "添加活动信息";
+      this.fileList = [];
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -329,6 +337,7 @@ export default {
         this.form = response.data;
         this.form.activityArea = this.form.activityArea.split(',');
         this.form.beginEndTime = this.form.beginEndTime.split(',');
+        this.fileList = this.form.activityAdvertImg == null || this.form.activityAdvertImg == "" ? [] : JSON.parse(this.form.activityAdvertImg);
         this.open = true;
         this.title = "修改活动信息";
       });
@@ -337,13 +346,18 @@ export default {
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
-          console.log(this.form.activityArea );
-          console.log(this.form.beginEndTime );
+          //活动地区名称
+          this.form.activityAreaName = CodeToText[this.form.activityArea[this.form.activityArea.length-1]]
           if (this.form.activityArea != null && this.form.activityArea != '' && this.form.activityArea != undefined) {
             this.form.activityArea = this.form.activityArea.join(',');
           }
           if (this.form.beginEndTime != null && this.form.beginEndTime != '' && this.form.beginEndTime != undefined) {
             this.form.beginEndTime = this.form.beginEndTime.join(',');
+          }
+          this.form.newImgs = this.newImgs;
+          this.form.delImgs = this.delImgs;
+          if (this.form.activityAdvertImg == 'true') {
+            this.form.activityAdvertImg = null;
           }
           if (this.form.id != null) {
             updateActivityInfo(this.form).then(response => {
@@ -354,6 +368,8 @@ export default {
               }
             });
           } else {
+            //活动类型（1：秒杀，2：清仓）
+            this.form.activityType = 2;
             addActivityInfo(this.form).then(response => {
               if (response.code === 200) {
                 this.msgSuccess("新增成功");
@@ -369,15 +385,15 @@ export default {
     handleDelete(row) {
       const ids = row.id || this.ids;
       this.$confirm('是否确认删除活动信息编号为"' + ids + '"的数据项?', "警告", {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          type: "warning"
-        }).then(function() {
-          return delActivityInfo(ids);
-        }).then(() => {
-          this.getList();
-          this.msgSuccess("删除成功");
-        }).catch(function() {});
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      }).then(function() {
+        return delActivityInfo(ids);
+      }).then(() => {
+        this.getList();
+        this.msgSuccess("删除成功");
+      }).catch(function() {});
     },
     /** 导出按钮操作 */
     handleExport() {
@@ -386,35 +402,51 @@ export default {
       }, `marketing_activityInfo.xlsx`)
     },
 
-    //upload file 函数
+    //时间格式化
+    handleTimeFormatter(row, column, cellValue, index) {
+      const time = cellValue.split(',');
+      const benin = time[0].substr(0,16);
+      const end = time[1].substr(0,16);
+      return benin +' 至 '+ end;
+    },
+
+    //行商品设置
+    handleGoodsSetting(row) {
+      this.$router.push({ path: "/goods/list", query: {id: row.id, activityAreaName: row.activityAreaName, type: '3'}})
+    },
+
+    //upload file 成功函数
     handleSeccess(response, file, fileList1) {
-      if (response.code === 200) {
-        //如果商品信息dialog打开,就是商品标题图
-        if (this.open) {
-          this.form.activityAdvertImg = response.data;
-          this.fileList = fileList1;
-        }
-        //this.$refs.upload.clearFiles();
+      if (response.code === 200 ) {
+        //成功后更新本地图片list
+        this.fileList = fileList1;
+        //每次新增都添加都新增集合中
+        this.newImgs.push(response);
+        this.form.activityAdvertImg = 'true';
+        // 清除上传成功列表
+        // this.$refs.upload.clearFiles();
         this.msgSuccess("提交成功");
       } else {
         this.msgError("提交失败,请稍后重试");
       }
     },
-
+    //upload file 失败函数
     handleError() {
       this.msgError("提交失败,请稍后重试");
     },
-
+    //upload file 删除后函数
     handleRemove(file1, fileList1) {
-      //如果商品信息dialog打开,就是商品标题图
-      if (this.open) {
-        this.form.activityAdvertImg = null;
-        this.fileList = fileList1;
+      //成功后更新本地图片list
+      this.fileList = fileList1;
+      //每次删除都添加到删除数组中
+      if ( file1.response == undefined || file1.response == null || file1.response == '' ) {
+        this.delImgs.push(file1.name);
       }
     },
-
-    beforeRemove(file1, fileList1) {//上传文件变化时
-      if (file1.response == undefined || file1.response == null || file1.response == '') {
+    //upload file 删除前函数
+    //上传文件变化时
+    beforeRemove(file1, fileList1) {
+      if ( file1.response == undefined || file1.response == null || file1.response == '' ) {
         return;
       }
       const data = {
@@ -424,17 +456,12 @@ export default {
       delImg(data).then(response => {
         //console.log(response);
       });
+      this.form.activityAdvertImg = null;
     },
 
     //上传文件提交时
     beforeUpload(file) {
       return true;
-    },
-    //dialog框 关闭时触发
-    dialogBeforeClose(done) {
-      this.reset();
-      this.fileList = [];
-      done();
     },
   }
 };

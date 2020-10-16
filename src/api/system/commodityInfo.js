@@ -69,14 +69,6 @@ export function getSortTwoAll() {
   })
 }
 
-// 删除图片
-export function delImg(query) {
-  return request({
-    url: '/commodity/file/delImg',
-    method: 'get',
-    params: query
-  })
-}
 
 // 查询合伙人列表
 export function selectDealerList() {
