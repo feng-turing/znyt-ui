@@ -412,7 +412,7 @@ export default {
 
     //行商品设置
     handleGoodsSetting(row) {
-      this.$router.push({ path: "/goods/list", query: {id: row.id, activityAreaName: row.activityAreaName, type: '3'}})
+      this.$router.push({ path: "/goods/list", query: {id: row.id, activityAreaName: row.activityAreaName, type: '4'}})
     },
 
     //upload file 成功函数
