@@ -259,7 +259,7 @@ export default {
     detailOk(data) {
       data.activityType = '1';
       const dealerArea = data.dealerArea.substring(data.dealerArea.indexOf('省')+1,data.dealerArea.indexOf('市')+1);
-      listActivitygoods({searchValue: dealerArea}).then(result =>{
+      listActivitygoods({searchValue: dealerArea, activityType: data.activityType}).then(result =>{
         if (result.code === 200) {
           if (result.total > 0) {
             this.msgError("该地区下已经存在优惠商品，请删除原优惠商品，再添加");
