@@ -133,7 +133,7 @@
             :on-error="handleError"
             :on-remove="handleRemove"
             :before-remove="beforeRemove"
-            multiple
+            :limit="1"
           >
             <i class="el-icon-plus"></i>
           </el-upload>
