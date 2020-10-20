@@ -64,6 +64,18 @@
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
+          <el-button v-show="scope.row.isRecommend == 'N'"
+            size="mini"
+            type="text"
+            icon="el-icon-setting"
+            @click="handleSettingRecommend(scope.row.twoId, 'Y')"
+          >设为推荐</el-button>
+          <el-button v-show="scope.row.isRecommend == 'Y'"
+            size="mini"
+            type="text"
+            icon="el-icon-setting"
+            @click="handleSettingRecommend(scope.row.twoId, 'N')"
+          >取消推荐</el-button>
           <el-button
             size="mini"
             type="text"
@@ -274,7 +286,16 @@ export default {
         ...this.queryParams
       }, `system_sortTwo.xlsx`)
     },
-
+    //设置收藏或取消收藏
+    handleSettingRecommend(id, status) {
+      updateSortTwo({twoId:id, isRecommend:status}).then(response => {
+        if (response.code === 200) {
+          this.msgSuccess("设置成功");
+          this.open = false;
+          this.getList();
+        }
+      });
+    },
     /** 提交按钮 */
     submitForm() {
       this.$refs["form"].validate(valid => {
