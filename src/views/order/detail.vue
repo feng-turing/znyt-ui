@@ -118,7 +118,7 @@
         </el-table-column>
       </el-table>
       <div style="float: right;margin: 20px">
-        合计：<span class="color-danger">￥{{order.orderFee.feeTotal}}</span>
+        合计：<span class="color-danger">￥{{orderGoodsTotalPrice}}</span>
       </div>
 
       <div style="margin-top: 60px">
@@ -155,6 +155,8 @@
     name: "Order",
     data() {
       return {
+        //订单商品总价
+        orderGoodsTotalPrice : 0,
         //看图使用
         dialogVisible: false,
         dialogImageUrl: '',
@@ -207,6 +209,10 @@
         getOrderDetail(orderId).then(response => {
           if (response.code === 200) {
             this.order = response.data;
+            //累加所有订单商品
+            this.orderGoodsTotalPrice = this.order.orderCommodity.reduce((e,q)=>{
+               return e + q.commodityPrice;
+            }, 0);
           }
           this.loading = false;
         });
@@ -242,7 +248,6 @@
           this.dialogVisible = true;
         }
       },
-
 
     }
   };
