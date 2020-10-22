@@ -1,14 +1,35 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
-      <!--<el-form-item>
+    <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="100px">
+      <el-form-item>
+
+        <el-form-item label="广告位置" prop="advertLocation">
+          <el-select v-model="queryParams.advertLocation" placeholder="请选择广告位置" clearable size="small">
+            <el-option
+              v-for="item in advertLocationOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="经销商地区">
+          <el-cascader
+            :options="options"
+            :props="props"
+            v-model="tempCity"
+            :collapse-tags="false"
+            show-all-levels
+            filterable
+            clearable></el-cascader>
+        </el-form-item>
         <el-button type="cyan" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-      </el-form-item>-->
+      </el-form-item>
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
+      <!--<el-col :span="1.5">
         <el-button
           type="primary"
           icon="el-icon-copy-document"
@@ -16,44 +37,28 @@
           :disabled="multiple"
           @click="handleCopyAdd"
         >复制</el-button>
-      </el-col>
-      <!--<el-col :span="1.5">
-        <el-button
-          type="success"
-          icon="el-icon-edit"
-          size="mini"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['system:advert:edit']"
-        >修改</el-button>
-      </el-col>
+      </el-col>-->
       <el-col :span="1.5">
         <el-button
-          type="danger"
-          icon="el-icon-delete"
+          type="primary"
+          icon="el-icon-add"
           size="mini"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['system:advert:remove']"
-        >删除</el-button>
+          @click="handleAdd"
+        >新增</el-button>
       </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="warning"
-          icon="el-icon-download"
-          size="mini"
-          @click="handleExport"
-          v-hasPermi="['system:advert:export']"
-        >导出</el-button>
-      </el-col>
-	  <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>-->
     </el-row>
 
     <el-table v-loading="loading" :data="advertList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
 <!--      <el-table-column label="主键" align="center" prop="advertId" />-->
       <el-table-column label="序号" type="index" width="50" align="center"/>
-      <el-table-column label="广告位置" align="center" prop="advertLocation" />
+      <el-table-column label="广告位置" align="center" prop="advertLocation" :formatter="function(row, column, cellValue, index){switch (cellValue) {
+        case '0' : return '首页轮播图';break;
+        case '1' : return '秒杀页广告图';break;
+        case '2' : return '个人中心广告1位';break;
+        case '3' : return '个人中心广告2位';break;
+        default : return '';
+      }}"/>
       <el-table-column label="广告名称" align="center" prop="advertLinkName" />
 <!--      <el-table-column label="链接地址" align="center" prop="advertLinkUrl" />-->
       <el-table-column label="地区" align="center" prop="advertAreaName" />
@@ -90,7 +95,14 @@
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="广告位置" prop="advertLocation">
-          <el-input v-model="form.advertLocation" placeholder="请输入广告位置" disabled/>
+          <el-select v-model="form.advertLocation" placeholder="请输入广告位置" clearable size="small" :disabled="editStatus">
+            <el-option
+              v-for="item in advertLocationOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
         </el-form-item>
 
         <el-form-item label="广告名称" prop="advertLinkName">
@@ -108,19 +120,18 @@
             format="yyyy-MM-dd">
           </el-date-picker>
         </el-form-item>
+        <el-form-item label="地区" prop="advertArea">
+          <el-cascader :disabled="editStatus"
+                       :options="options"
+                       :props="props"
+                       v-model="form.advertArea"
+                       :collapse-tags="false"
+                       show-all-levels
+                       filterable
+                       clearable></el-cascader>
+        </el-form-item>
         <el-form-item label="链接地址" prop="advertLinkUrl">
           <el-input v-model="form.advertLinkUrl" placeholder="请输入链接地址" />
-        </el-form-item>
-        <el-form-item label="地区" prop="advertArea">
-<!--          <el-input v-model="form.advertArea" placeholder="请输入广告区域" />-->
-          <el-cascader
-            :options="options"
-            :props="props"
-            v-model="form.advertArea"
-            :collapse-tags="false"
-            show-all-levels
-            filterable
-            clearable></el-cascader>
         </el-form-item>
         <el-form-item label="广告图片" >
           <el-upload ref="upload"
@@ -172,6 +183,13 @@ export default {
       //图片相关数据 new未新增,del为删除
       newImgs: [],
       delImgs: [],
+      // 地区与广告位置不允许修改
+      editStatus: false,
+      //地区省市联动
+      props: { multiple: false },
+      options: provinceAndCityData,
+      tempCity: null,
+
       // 遮罩层
       loading: true,
       // 选中数组
@@ -195,9 +213,7 @@ export default {
         pageNum: 1,
         pageSize: 10,
       },
-      //地区省市联动
-      props: { multiple: true },
-      options: provinceAndCityData,
+
       // 表单参数
       form: {},
       // 表单校验
@@ -231,7 +247,21 @@ export default {
           {type: 'array',required: true, message: "地区不能为空", trigger: "blur"}
         ],
 
-      }
+      },
+      advertLocationOptions: [{
+        value: '0',
+        label: '首页轮播图'
+      }, {
+        value: '1',
+        label: '秒杀页广告图'
+      }, {
+        value: '2',
+        label: '个人中心广告1位'
+      }, {
+        value: '3',
+        label: '个人中心广告2位'
+      }],
+
     };
   },
   created() {
@@ -241,6 +271,12 @@ export default {
     /** 查询广告信息列表 */
     getList() {
       this.loading = true;
+      //获取当前选择的市，进行模糊查询
+      if (this.tempCity != null) {
+        this.queryParams.advertAreaName = CodeToText[this.tempCity[this.tempCity.length-1]]
+      } else {
+        this.queryParams.advertAreaName = null;
+      }
       listAdvert(this.queryParams).then(response => {
         this.advertList = response.rows;
         this.total = response.total;
@@ -280,6 +316,7 @@ export default {
     resetQuery() {
       this.resetForm("queryForm");
       this.handleQuery();
+      this.tempCity = null;
     },
     // 多选框选中数据
     handleSelectionChange(selection) {
@@ -292,7 +329,8 @@ export default {
       this.reset();
       this.open = true;
       this.title = "添加广告信息";
-      this.fileList.length = 0;
+      this.editStatus = false;
+      this.fileList = [];
     },
 
     /** 复制增加 */
@@ -309,6 +347,7 @@ export default {
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
+
       const advertId = row.advertId || this.ids
       getAdvert(advertId).then(response => {
         this.form = response.data;
@@ -316,6 +355,7 @@ export default {
         this.form.advertArea = this.form.advertArea == null || this.form.advertArea == '' ? [] : JSON.parse(this.form.advertArea);
         this.fileList = this.form.advertImg == null || this.form.advertImg == "" ? [] : JSON.parse(this.form.advertImg);
         this.open = true;
+        this.editStatus = true;
         this.title = "修改广告信息";
       });
     },
@@ -323,17 +363,17 @@ export default {
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
-          const submitArea = [];
-          const areas = this.form.advertArea;
-          for (let i = 0; i < areas.length; i++) {
-            const area = areas[i];
-            submitArea.push(CodeToText[area[1]]);
+          if (this.fileList.length <= 0) {
+            this.msgError("请选择广告图");
+            return false;
           }
+          //获取到地区名称
+          this.form.advertAreaName = CodeToText[this.form.advertArea[1]];
           this.form.advertPutTime = this.form.advertPutTime.join(',');
           //将 新增图片数组与删除图片数组添加到form中进行提交
           this.form.newImgs = this.newImgs;
           this.form.delImgs = this.delImgs;
-          this.form.advertAreaName = submitArea.join(',');
+
           if (this.form.advertId != null) {
             updateAdvert(this.form).then(response => {
               if (response.code === 200) {
@@ -343,13 +383,31 @@ export default {
               }
             });
           } else {
-            addAdvert(this.form).then(response => {
-              if (response.code === 200) {
-                this.msgSuccess("新增成功");
-                this.open = false;
-                this.getList();
-              }
-            });
+            if (this.form.advertLocation != '0') {
+              listAdvert({advertAreaName: this.form.advertAreaName, advertLocation: this.form.advertLocation}).then(result=>{
+                if (result.code === 200 && result.total > 0) {
+                  this.form.advertPutTime = this.form.advertPutTime.split(',');
+                  this.msgError("该地区存在该位置广告")
+                  return false;
+                } else {
+                  addAdvert(this.form).then(response => {
+                    if (response.code === 200) {
+                      this.msgSuccess("新增成功");
+                      this.open = false;
+                      this.getList();
+                    }
+                  });
+                }
+              })
+            } else {
+              addAdvert(this.form).then(response => {
+                if (response.code === 200) {
+                  this.msgSuccess("新增成功");
+                  this.open = false;
+                  this.getList();
+                }
+              });
+            }
           }
         }
       });

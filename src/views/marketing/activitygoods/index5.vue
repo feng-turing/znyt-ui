@@ -74,6 +74,9 @@
         <el-form-item label="商品活动价格" prop="activityPrice">
           <el-input-number v-model="form.activityPrice" :precision="2" :step="1" :max="99999999" :controls="false" /><span>元</span>
         </el-form-item>
+        <el-form-item label="商品活动限购" prop="activityLimitNum">
+          <el-input-number v-model="form.activityLimitNum"  :step="1" :max="99999999" :controls="false" /><span>个</span>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -130,6 +133,9 @@ export default {
       rules: {
         activityPrice: [
           {required: true, message: "活动价格不能为空", trigger: "blur"}
+        ],
+        activityLimitNum: [
+          {required: true, message: "活动限购不能为空", trigger: "blur"}
         ]
       }
     };

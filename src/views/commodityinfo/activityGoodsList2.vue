@@ -58,6 +58,7 @@
       <el-table-column label="商品库存" align="center" prop="goodsInfoVo.commodityStock"/>
       <el-table-column label="活动价格（元）" align="center" prop="activityPrice"/>
       <el-table-column label="活动排序" align="center" prop="activitySort"/>
+      <el-table-column label="活动限购（个）" align="center" prop="activityLimitNum"/>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -92,6 +93,14 @@
           <el-col :span="24">
             <el-form-item label="推荐排序" prop="activitySort">
               <el-input-number v-model="form.activitySort" :controls="false"/>
+            </el-form-item>
+          </el-col>
+
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="商品活动限购" prop="activityLimitNum">
+              <el-input-number v-model="form.activityLimitNum" :step="1" :max="99999999" :controls="false" /><span>个</span>
             </el-form-item>
           </el-col>
         </el-row>
@@ -167,6 +176,9 @@ import activityGoodsListView2 from './activityGoodsListView2'
           ],
           activitySort: [
             {type: 'number',required: true, message: "排序不能为空", trigger: "blur"}
+          ],
+          activityLimitNum: [
+            {required: true, message: "活动限购不能为空", trigger: "blur"}
           ]
         },
 
@@ -291,6 +303,7 @@ import activityGoodsListView2 from './activityGoodsListView2'
         data.activityType = this.parentType;
         //活动信息主键
         data.activityInfoId = this.parentId;
+        data.activityLimitNum = 1;
         addActivitygoods(data).then(response => {
           if (response.code === 200) {
             this.msgSuccess("新增成功");

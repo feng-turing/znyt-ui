@@ -52,6 +52,12 @@
               <el-input-number v-model="form.activityPrice" :precision="2" :step="1" :max="99999999" :controls="false" /><span>元</span>
             </el-form-item>
           </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="商品活动限购" prop="activityLimitNum">
+              <el-input-number v-model="form.activityLimitNum" :step="1" :max="99999999" :controls="false" /><span>个</span>
+            </el-form-item>
+          </el-col>
         </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -106,6 +112,9 @@
         rules: {
           activityPrice: [
             {required: true, message: "活动价格不能为空", trigger: "blur"}
+          ],
+          activityLimitNum: [
+            {required: true, message: "活动限购不能为空", trigger: "blur"}
           ]
         },
 
@@ -187,6 +196,7 @@
       //商品列表页点击确定 回调参数
       handleAddGoods(row) {
         this.form = row;
+        this.form.activityLimitNum = 1;
         this.submitForm.activityCommodityId = row.commodityId;
         this.addImg = row.commodityImg;
       },
