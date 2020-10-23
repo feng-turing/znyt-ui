@@ -64,7 +64,7 @@
         </span></div>
         <el-table v-loading="loading" :data="dealerList" @selection-change="handleSelectionChange" @cell-click="handleCellClick">
           <el-table-column type="selection" width="55" align="center" />
-          <el-table-column label="主键" align="center" type="index" />
+          <el-table-column label="序号" align="center" type="index" />
           <el-table-column label="商家名称" align="center" prop="dealerName" />
           <el-table-column label="商家地址" align="center" prop="dealerAddress" />
           <el-table-column label="经度" align="center" prop="dealerLong" />
@@ -80,8 +80,16 @@
           </el-table-column>
           <el-table-column label="合伙人" align="center" prop="partnerName" />
           <el-table-column label="合伙人推荐码" align="center" prop="dealerPartnerId" />
+          <el-table-column label="保证金" align="center" prop="dealerMargin" />
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
             <template slot-scope="scope">
+              <el-button
+                size="mini"
+                type="text"
+                icon="el-icon-setting"
+                @click="handleSettingMargin(scope.row)"
+                v-show="scope.row.dealerMargin === 0"
+              >设置保证金</el-button>
               <el-button
                 size="mini"
                 type="text"
@@ -148,7 +156,7 @@
         <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
         <el-table v-loading="loading" :data="dealerList" @selection-change="handleSelectionChange" @cell-click="handleCellClick">
           <el-table-column type="selection" width="55" align="center" />
-          <el-table-column label="主键" align="center" type="index" />
+          <el-table-column label="序号" align="center" type="index" />
           <el-table-column label="合伙人名称" align="center" prop="dealerName" />
           <el-table-column label="合伙人地址" align="center" prop="dealerAddress" />
           <el-table-column label="经度" align="center" prop="dealerLong" />
@@ -164,8 +172,17 @@
           </el-table-column>
           <el-table-column label="数量" align="center" prop="partnerSum" />
           <el-table-column label="推荐码" align="center" prop="dealerPartnerId" />
+          <el-table-column label="保证金" align="center" prop="dealerMargin" />
+
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
             <template slot-scope="scope">
+              <el-button
+                size="mini"
+                type="text"
+                icon="el-icon-setting"
+                @click="handleSettingMargin(scope.row)"
+                v-show="scope.row.dealerMargin === 0"
+              >设置保证金</el-button>
               <el-button
                 size="mini"
                 type="text"
@@ -183,9 +200,7 @@
             </template>
           </el-table-column>
         </el-table>
-
       </el-tab-pane>
-
     </el-tabs>
 
 
@@ -196,128 +211,6 @@
       :limit.sync="queryParams.pageSize"
       @pagination="getList"
     />
-
-    <el-dialog :title="title" :visible.sync="open" width="1000px" append-to-body>
-      <el-form ref="form" :model="form" label-width="80px">
-        <!--        <el-form-item label="商家区域" prop="dealerArea">-->
-        <!--          <el-input v-model="form.dealerArea" placeholder="请输入商家区域" />-->
-        <!--        </el-form-item>-->
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="商家名称" >
-              <el-input v-model="form.dealerName"  :disabled="true"/>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="商家分类" >
-              <el-select v-model="form.dealerType" :disabled="true">
-                <el-option
-                  v-for="dict in dealerTypeOptions"
-                  :key="dict.dictValue"
-                  :label="dict.dictLabel"
-                  :value="dict.dictValue"
-                ></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-row>
-          <el-col :span="24">
-            <el-form-item label="商家地址" >
-              <el-input v-model="form.dealerAddress" type="textarea" :disabled="true"/>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="营业时间" >
-              <el-input v-model="form.dealerBusinessHours"  :disabled="true"/>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="商家电话"  >
-              <el-input v-model="form.dealerPhone" :disabled="true" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="经度" >
-              <el-input v-model="form.dealerLong" :disabled="true"/>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="纬度"  >
-              <el-input v-model="form.dealerLat" :disabled="true"/>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="真实姓名" >
-              <el-input v-model="form.dealerRealName" :disabled="true" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="身份证号" >
-              <el-input v-model="form.dealerIdCard" :disabled="true"/>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="商家图片" >
-              <el-image
-                style="width: 100px; height: 100px"
-                :src="form.dealerImg"
-                :preview-src-list="form.dealerImgs">
-              </el-image>
-            </el-form-item>
-
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="营业执照" >
-              <el-image
-                style="width: 100px; height: 100px"
-                :src="form.dealerUniqueCodeImg"
-                :preview-src-list="form.dealerUniqueCodeImgs">
-              </el-image>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="推荐码" >
-              <el-input v-model="form.dealerPartnerId" :disabled="true"/>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="审核结果" >
-              <el-select v-model="form.dealerStatus" :disabled="true">
-                <el-option
-                  v-for="dict in dealerStatusOptions"
-                  :key="dict.dictValue"
-                  :label="dict.dictLabel"
-                  :value="parseInt(dict.dictValue)"
-                ></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="24">
-            <el-form-item label="审批意见"  >
-              <el-input v-model="form.dealerApproveOpinion" type="textarea" rows="3" :disabled="true"/>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="cancel">关 闭</el-button>
-      </div>
-    </el-dialog>
 
     <!--审批经销商-->
     <el-dialog :title="approveTitle" :visible.sync="approveOpen" width="1000px" append-to-body>
@@ -431,18 +324,32 @@
         <el-row>
           <el-col :span="24">
             <el-form-item label="审批意见"  >
-              <el-input v-model="form.dealerApproveOpinion" type="textarea" rows="3"/>
+              <el-input v-model="form.dealerApproveOpinion" type="textarea" rows="3" :disabled="!btnStatus"/>
             </el-form-item>
           </el-col>
         </el-row>
-
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="approve(1)">同 意</el-button>
-        <el-button type="danger" @click="approve(2)">不同意</el-button>
+        <el-button type="primary" v-if="btnStatus" @click="approve(1)">同 意</el-button>
+        <el-button type="danger" v-if="btnStatus" @click="approve(2)">不同意</el-button>
         <el-button @click="cancel">关 闭</el-button>
       </div>
     </el-dialog>
+
+    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+      <el-form ref="form" :model="form" label-width="80px">
+        <el-form-item label="保证金" prop="dealerMargin">
+          <el-input-number v-model="form.dealerMargin" :step="1" :max="99999999" :controls="false" /><span>元</span>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button @click="cancel">关 闭</el-button>
+      </div>
+
+
+    </el-dialog>
+
   </div>
 </template>
 
@@ -459,6 +366,7 @@ export default {
       props: { multiple: false },
       options: provinceAndCityData,
       tempCity: null,
+      btnStatus: true,
       // 遮罩层
       loading: true,
       // 选中数组
@@ -613,6 +521,7 @@ export default {
       this.open = true;
       this.title = "添加经销商信息";
     },
+
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
@@ -624,17 +533,11 @@ export default {
       });
     },
 
-    /** 修改按钮操作 */
-    handleApprove(row) {
+    /** 设置保证金 */
+    handleSettingMargin(row) {
       this.reset();
-      const dealerId = row.dealerId || this.ids
-      getDealer(dealerId).then(response => {
-        this.form = response.data;
-        this.form.dealerImgs = [this.form.dealerImg];
-        this.form.dealerUniqueCodeImgs = [this.form.dealerUniqueCodeImg];
-        this.approveOpen = true;
-        this.appeoveTitle = "审批经销商";
-      });
+      this.form.dealerId = row.dealerId;
+      this.open = true;
     },
 
     /** 提交按钮 */
@@ -711,6 +614,20 @@ export default {
       this.getList();
     },
 
+    /** 审批按钮操作 */
+    handleApprove(row) {
+      this.reset();
+      const dealerId = row.dealerId || this.ids
+      getDealer(dealerId).then(response => {
+        this.form = response.data;
+        this.form.dealerImgs = [this.form.dealerImg];
+        this.form.dealerUniqueCodeImgs = [this.form.dealerUniqueCodeImg];
+        this.approveOpen = true;
+        this.btnStatus = true;
+        this.appeoveTitle = "";
+      });
+    },
+
     /** 当某个单元格被点击时会触发该事件 */
     handleCellClick(row, column, cell, event) {
       if (column.property === 'dealerStatus') {
@@ -720,8 +637,9 @@ export default {
           this.form = response.data;
           this.form.dealerImgs = [this.form.dealerImg];
           this.form.dealerUniqueCodeImgs = [this.form.dealerUniqueCodeImg];
-          this.open = true;
-          this.appeoveTitle = "查看经销商信息";
+          this.approveOpen = true;
+          this.btnStatus = false;
+          this.appeoveTitle = "";
         });
       }
     },
