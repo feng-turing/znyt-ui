@@ -348,7 +348,8 @@
     getSortTwoAll,
     delImg,
     releaseCommodityInfo,
-    selectDealerList
+    selectDealerList,
+    delPartnelCommodityInfo
   } from "@/api/system/commodityInfo";
   import Treeselect from "@riophae/vue-treeselect";
   import "@riophae/vue-treeselect/dist/vue-treeselect.css";
@@ -689,7 +690,7 @@
           cancelButtonText: "取消",
           type: "warning"
         }).then(function () {
-          return delCommodityInfo(ids);
+          return delPartnelCommodityInfo(ids);
         }).then(() => {
           this.getList();
           this.msgSuccess("删除成功");

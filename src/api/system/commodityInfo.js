@@ -52,6 +52,14 @@ export function delCommodityInfo(commodityId) {
   })
 }
 
+// 删除合伙人自营商品信息
+export function delPartnelCommodityInfo(commodityId) {
+  return request({
+    url: '/commodity/commodityInfo/partnel/' + commodityId,
+    method: 'delete'
+  })
+}
+
 // 上下架自营商品信息
 export function releaseCommodityInfo(data) {
   return request({

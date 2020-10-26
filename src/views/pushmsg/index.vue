@@ -131,7 +131,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row v-show="pushTypeOpen">
+        <el-row>
           <el-col :span="12">
             <el-form-item label="发布时间" prop="pushReleaseTime">
               <el-date-picker clearable size="small" style="width: 200px"
@@ -143,7 +143,7 @@
               </el-date-picker>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
+          <el-col :span="12"  v-show="pushTypeOpen">
             <el-form-item label="跳转链接" prop="pushUrl">
               <el-input v-model="form.pushUrl" placeholder="请输入跳转链接" />
             </el-form-item>
@@ -253,6 +253,9 @@ export default {
         pushDetail: [
           {required: true, message: '推送详情不能为空', trigger: "blur"},
         ],
+        pushReleaseTime: [
+          {required: true, message: '发布时间不能为空', trigger: "blur"},
+        ],
         pushUrl: [
           {required: false, message: '跳转链接不能为空', trigger: "blur"},
           {validator: isUrl, trigger: 'blur'}
@@ -325,6 +328,13 @@ export default {
       this.open = true;
       this.fileList = [];
       this.title = "添加推送消息";
+      this.pushTypeOpen = false;
+      this.form.pushReleaseTime = '';
+      this.form.pushUrl = '';
+      this.form.pushImg = '';
+      this.fileList = [];
+      this.newImgs = [];
+      this.delImgs = [];
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
