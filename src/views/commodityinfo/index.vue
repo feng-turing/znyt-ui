@@ -142,14 +142,14 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="商品货号" prop="commodityGoodsCode">
-              <el-input v-model="form.commodityGoodsCode" placeholder="请输入商品货号"/>
+              <el-input v-model="form.commodityGoodsCode" placeholder="请输入商品货号" :disabled="dealerStatus"/>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
             <el-form-item label="商品库存" prop="commodityStock">
-              <el-input-number v-model="form.commodityStock" :min="1" :max="99999999" placeholder="请输入商品库存"/>
+              <el-input-number v-model="form.commodityStock" :min="1" :max="99999999" placeholder="请输入商品库存" :disabled="dealerStatus"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">

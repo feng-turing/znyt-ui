@@ -225,8 +225,8 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="商家分类" >
-              <el-select v-model="form.dealerType" :disabled="true">
+            <el-form-item label="商家分类" v-show="isPartnelStatus">
+              <el-select v-model="form.dealerType" :disabled="true" >
                 <el-option
                   v-for="dict in dealerTypeOptions"
                   :key="dict.dictValue"
@@ -395,6 +395,8 @@ export default {
       dealerStatusOptions: [],
       // 是否合伙人(Y:是,N:不是)字典
       isPartnerOptions: [],
+      // 是否审批合伙人
+      isPartnelStatus: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -608,8 +610,10 @@ export default {
     tabsBefore(activeName, oldActiveName) {
       if (activeName === '0') {
         this.queryParams.isPartner='N';
+        this.isPartnelStatus = true;
       } else {
         this.queryParams.isPartner='Y';
+        this.isPartnelStatus = false;
       }
       this.getList();
     },
