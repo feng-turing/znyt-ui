@@ -40,6 +40,7 @@
       <el-table-column label="商品原价（元）" align="center" prop="goodsInfoVo.commodityPrice" />
       <el-table-column label="商品库存" align="center" prop="goodsInfoVo.commodityStock" />
       <el-table-column label="活动价格（元）" align="center" prop="activityPrice" />
+      <el-table-column label="活动限购（个）" align="center" prop="activityLimitNum"/>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button

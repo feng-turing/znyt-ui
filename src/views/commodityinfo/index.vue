@@ -77,13 +77,6 @@
             size="mini"
             type="text"
             icon="el-icon-edit"
-            @click="handleCommodityDetail(scope.row)"
-          >添加商品详情
-          </el-button>
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
             v-hasPermi="['system:commodityInfo:edit']"
           >修改
@@ -109,7 +102,7 @@
     />
 
     <!-- 添加或修改自营商品信息对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="800px" append-to-body :before-close="dialogBeforeClose">
+    <el-dialog :title="title" :visible.sync="open" width="800px" append-to-body >
       <el-form ref="form" :model="form" :rules="rules" label-width="120px">
         <el-row>
           <el-col :span="24">
@@ -199,9 +192,6 @@
         </el-row>-->
         <el-row>
           <el-col :span="12">
-            <!--<el-form-item label="商品图片" prop="commodityImg">
-              <el-input v-model="form.commodityImg" placeholder="请输入商品图片"/>
-            </el-form-item>-->
             <el-form-item label="商品图片" prop="commodityImg">
               <el-upload
                 class="upload-demo"
@@ -219,8 +209,7 @@
                 :limit=1
               >
                 <el-button slot="trigger" size="small" type="primary">选取商品封面</el-button>
-                <!--          <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button>-->
-                <div slot="tip" class="el-upload__tip">只能上传jpg/png文件</div>
+                <div slot="tip" class="el-upload__tip" style="color: red">只能上传jpg/png文件</div>
               </el-upload>
             </el-form-item>
           </el-col>
@@ -251,6 +240,36 @@
             </el-form-item>
           </el-col>
         </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="商品轮播图" prop="commodityImgs">
+              <el-upload
+                class="upload-demo"
+                ref="uploads"
+                :action="url"
+                :headers="header"
+                accept="image/jpeg,image/jpg,image/png"
+                :before-remove="beforeRemove"
+                :on-success="handleSeccess2"
+                :on-exceed="handleExceed"
+                :file-list="fileLists"
+                :multiple="true"
+                :limit=5
+              >
+                <el-button slot="trigger" size="small" type="primary">选取商品轮播</el-button>
+                <div slot="tip" class="el-upload__tip" style="color: red">只能上传jpg/png文件，且最多上传五张</div>
+              </el-upload>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="商品详情" prop="commodityDetailImg">
+              <el-button size="small" type="primary" @click="handleCommodityDetail()">添加商品详情</el-button>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
         <el-row>
           <el-col :span="12">
             <el-form-item label="商品进货价" prop="commodityPurchasePrice">
@@ -284,43 +303,46 @@
         <el-button type="primary" @click="submitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
       </div>
+
+      <el-dialog :title="title" :visible.sync="openDetail" width="800px" append-to-body >
+        <el-form ref="formDetail" :model="form" :rules="rules" label-width="80px">
+          <el-row>
+            <el-col :span="24">
+              <el-form-item label="商品详述" prop="commodityDetail">
+                <el-input v-model="form.commodityDetail" type="textarea" placeholder="请输入内容" rows="4"/>
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="详情图片">
+                <el-upload
+                  :headers="header"
+                  :action="url"
+                  :file-list="detailImgList"
+                  list-type="picture-card"
+                  :on-preview="handlePictureCardPreview"
+                  :on-success="handleSeccess"
+                  :on-error="handleError"
+                  :on-remove="handleRemove"
+                  :before-remove="beforeRemove"
+                  multiple
+                >
+                  <i class="el-icon-plus"></i>
+                </el-upload>
+                <el-dialog :visible.sync="dialogVisible" :modal="false">
+                  <img width="100%" :src="dialogImageUrl" alt="">
+                </el-dialog>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button type="primary" @click="submitForm1">确 定</el-button>
+<!--          <el-button @click="cancel">取 消</el-button>-->
+        </div>
+      </el-dialog>
+
     </el-dialog>
-    <el-dialog :title="title" :visible.sync="openDetail" width="800px" append-to-body :before-close="dialogBeforeClose">
-      <el-form ref="formDetail" :model="form" :rules="rules" label-width="80px">
-        <el-row>
-          <el-col :span="24">
-            <el-form-item label="商品详述" prop="commodityDetail">
-              <el-input v-model="form.commodityDetail" type="textarea" placeholder="请输入内容" rows="4"/>
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item label="详情图片">
-              <el-upload
-                :headers="header"
-                :action="url"
-                :file-list="detailImgList"
-                list-type="picture-card"
-                :on-preview="handlePictureCardPreview"
-                :on-success="handleSeccess"
-                :on-error="handleError"
-                :on-remove="handleRemove"
-                :before-remove="beforeRemove"
-                multiple
-              >
-                <i class="el-icon-plus"></i>
-              </el-upload>
-              <el-dialog :visible.sync="dialogVisible" :modal="false">
-                <img width="100%" :src="dialogImageUrl" alt="">
-              </el-dialog>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm1">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
-      </div>
-    </el-dialog>
+
     <!-- 增加库存 -->
     <el-dialog title="增加库存" :visible.sync="stockOpen" width="500px" append-to-body>
       <el-form ref="stockForm" :model="form" :rules="rules" label-width="80px">
@@ -366,12 +388,14 @@
         fileList: [],
         //表单提交url
         url: process.env.VUE_APP_BASE_API + '/system/file/uploadImg/commodity',
-        //商品详情图片
-        detailImgList: [],
         dialogVisible: false,
         dialogImageUrl: '',
-        detailImgNewList: [],
-        detailImgDelList: [],
+        //商品详情图片
+        detailImgList: [],
+        tempCommodityImgs: [],
+        tempCommodityDetailImgs:[],
+        // 轮播图
+        fileLists: [],
         stockOpen: false,
         // 遮罩层
         loading: true,
@@ -412,6 +436,7 @@
           dealerName: null,
           commodityName: null,
         },
+
         // 表单参数
         form: {},
         // 表单校验
@@ -447,7 +472,10 @@
             {required: true, message: "关键词不能为空", trigger: "blur"}
           ],
           commodityImg: [
-            {required: true, message: "商品图片不能为空", trigger: "blur"}
+            {required: true, message: "商品图片不能为空", trigger: "change"}
+          ],
+          commodityImgs: [
+            {required: true, message: "商品轮播图不能为空", trigger: "change"}
           ],
           commodityIsMember: [
             {required: true, message: "是否会员不能为空", trigger: "blur"}
@@ -457,10 +485,10 @@
           ],
           /*commodityMemberPrice: [
             {required: true, message: "会员价不能为空", trigger: "blur"}
-          ],*/
-          commodityDetailImg: [
-            {required: true, message: "详情图片不能为空", trigger: "blur"}
           ],
+          commodityDetailImg: [
+            {required: true, message: "详情图片不能为空", trigger: "change"}
+          ],*/
           commodityDetail: [
             {required: true, message: "商品详述不能为空", trigger: "blur"}
           ],
@@ -504,8 +532,6 @@
           this.total = response.total;
           this.loading = false;
         });
-        this.detailImgNewList.length = 0;
-        this.detailImgDelList.length = 0;
       },
 
       // 是否上架字典翻译
@@ -531,6 +557,7 @@
         this.stockOpen = false;
         this.reset();
         this.fileList = [];
+        this.fileLists = [];
         this.detailImgList = [];
       },
       // 表单重置
@@ -548,20 +575,17 @@
           commodityType: null,
           commodityKeyword: null,
           commodityImg: null,
+          commodityImgs: null ,
           commodityIsMember: null,
           commodityMemberPrice: null,
           commodityDetailImg: null,
           commodityDetail: null,
-          createBy: null,
-          createTime: null,
-          updateBy: null,
-          updateTime: null,
-          remark: null,
           commodityIsCoupon: 'N',
           commodityPurchasePrice: 1,
           commodityPartnerPrice: null,
           commodityIncomePrice: null,
           commodityDealerPrice: null,
+          params:{}
         };
         this.resetForm("form");
       },
@@ -585,6 +609,8 @@
       handleAdd() {
         this.reset();
         this.fileList = [];
+        this.fileLists = [];
+        this.detailImgList = [];
         this.open = true;
         this.title = "添加自营商品信息";
         this.dealerStatus = false;
@@ -599,6 +625,8 @@
             name: this.form.commodityName,
             url: this.form.commodityImg
           }];
+          this.fileLists = JSON.parse(this.form.commodityImgs);
+          this.detailImgList = this.form.commodityDetailImg == null || this.form.commodityDetailImg == "" ? [] : JSON.parse(this.form.commodityDetailImg);
           this.open = true;
           this.title = "修改自营商品信息";
           this.form.dealerId = [this.form.dealerId];
@@ -607,22 +635,61 @@
       },
 
       /** 行添加商品详情操作*/
-      handleCommodityDetail(row) {
-        this.reset();
-        const id = row.id || this.ids
-
-        getCommodityInfo(id).then(response => {
-          this.form = response.data;
-          this.detailImgList = this.form.commodityDetailImg == null || this.form.commodityDetailImg == "" ? [] : JSON.parse(this.form.commodityDetailImg);
-          this.openDetail = true;
-          this.titleDetail = "添加商品详情";
-        });
+      handleCommodityDetail() {
+        this.openDetail = true;
+        this.titleDetail = "添加商品详情";
       },
 
       /** 提交按钮 */
       submitForm() {
+        if (this.fileLists.length < 4 ) {
+          this.msgError("请至少选择4张轮播图");
+          return false;
+        }
+        if (this.form.commodityDetail == null || this.form.commodityDetail.length < 15) {
+          this.msgError("详情描述至少输入15个文字");
+          return false;
+        }
         this.$refs["form"].validate(valid => {
           if (valid) {
+            let imgs = [];
+            let detailImgs = [];
+            for (let i = 0; i < this.tempCommodityImgs.length; i++) {
+              const data = this.tempCommodityImgs[i];
+              if (data.response != null && data.response.data != null) {
+                imgs.push({
+                  url: data.response.data
+                })
+              } else {
+                imgs.push({
+                  url: data.url
+                })
+              }
+            }
+            for (let i = 0; i < this.tempCommodityDetailImgs.length; i++) {
+              const data = this.tempCommodityDetailImgs[i];
+              if (data.response != null && data.response.data != null) {
+                detailImgs.push({
+                  url: data.response.data
+                })
+              } else {
+                detailImgs.push({
+                  url: data.url
+                })
+              }
+            }
+            if (imgs.length > 0) {
+              this.form.commodityImgs = JSON.stringify(imgs);
+            } else {
+              this.form.commodityImgs = null;
+            }
+            if (detailImgs.length > 0) {
+              this.form.commodityDetailImg = JSON.stringify(detailImgs);
+            } else {
+              this.form.commodityDetailImg = null;
+            }
+
+
             if (this.form.id != null) {
               this.form.dealerId = null;
               this.form.dealerName = null;
@@ -665,22 +732,7 @@
 
       /** 详情提交按钮 */
       submitForm1() {
-
-        this.$refs["formDetail"].validate(valid => {
-          if (valid) {
-            this.form.newImgs = this.detailImgNewList;
-            this.form.delImgs = this.detailImgDelList;
-            if (this.form.id != null) {
-              update2CommodityInfo(this.form).then(response => {
-                if (response.code === 200) {
-                  this.msgSuccess("添加商品详情成功");
-                  this.openDetail = false;
-                  this.getList();
-                }
-              });
-            }
-          }
-        });
+        this.openDetail = false;
       },
       /** 删除按钮操作 */
       handleDelete(row) {
@@ -774,7 +826,7 @@
       handleSeccess(response, file, fileList1) {
         if (response.code === 200) {
           //如果商品信息dialog打开,就是商品标题图
-          if (this.open) {
+          if (this.open && !this.openDetail) {
             this.form.commodityImg = response.data;
             this.fileList = fileList1;
           }
@@ -782,7 +834,8 @@
           else if (this.openDetail) {
             this.detailImgList = fileList1;
             //每次新增都添加都新增集合中
-            this.detailImgNewList.push(response);
+            this.tempCommodityDetailImgs = fileList1;
+            this.form.commodityDetailImg = 'true';
           }
           //this.$refs.upload.clearFiles();
           this.msgSuccess("提交成功");
@@ -790,23 +843,38 @@
           this.msgError("提交失败,请稍后重试");
         }
       },
+
+      handleSeccess2(response, file, fileList1) {
+        if (response.code === 200) {
+          this.fileLists = fileList1;
+          this.tempCommodityImgs = fileList1;
+          this.form.commodityImgs = 'true';
+          this.msgSuccess("提交成功");
+        } else {
+          this.msgError("提交失败,请稍后重试");
+        }
+      },
+
+      handleExceed(files, fileList) {
+        this.$message.warning(`当前限制选择 5 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+      },
       handleError() {
         this.msgError("提交失败,请稍后重试");
       },
-      handleRemove(file1, fileList1) {
 
+      handleRemove2(file1, fileList1) {
+        this.fileLists = fileList1;
+      },
+
+      handleRemove(file1, fileList1) {
         //如果商品信息dialog打开,就是商品标题图
-        if (this.open) {
+        if (this.open && !this.openDetail) {
           this.form.commodityImg = null;
           this.fileList = fileList1;
         }
         //如果时商品详情dialog打开,就是详情图
         else if (this.openDetail) {
           this.detailImgList = fileList1;
-          //每次删除都添加到删除数组中
-          if (file1.response == undefined || file1.response == null || file1.response == '') {
-            this.detailImgDelList.push(file1.name);
-          }
         }
       },
 
@@ -830,13 +898,6 @@
       //上传文件提交时
       beforeUpload(file) {
         return true;
-      },
-      //dialog框 关闭时触发
-      dialogBeforeClose(done) {
-        this.reset();
-        this.fileList = [];
-        this.detailImgList = []
-        done();
       },
 
     }

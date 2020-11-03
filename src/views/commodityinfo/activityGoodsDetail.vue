@@ -212,6 +212,7 @@
         }
         this.submitForm.dealerArea = this.form.dealer.dealerArea;
         this.submitForm.activityPrice = this.form.activityPrice;
+        this.submitForm.activityLimitNum = this.form.activityLimitNum;
         this.$emit('ok', this.submitForm);
         /*this.open = false;
         this.reset();*/
