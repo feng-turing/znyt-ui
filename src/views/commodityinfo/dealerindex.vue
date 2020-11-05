@@ -63,6 +63,11 @@
       <!--      <el-table-column label="经销商id" align="center" prop="dealerId" />-->
       <el-table-column label="经销商名称" align="center" prop="dealer.dealerName"/>
       <el-table-column label="经销商地址" align="center" prop="dealer.dealerAddress"/>
+      <el-table-column label="商品图片" align="center" prop="commodityImg">
+        <template slot-scope="scope">
+          <el-image :src="scope.row.commodityImg"></el-image>
+        </template>
+      </el-table-column>
       <el-table-column label="商品名称" align="center" prop="commodityName"/>
       <el-table-column label="商品货号" align="center" prop="commodityGoodsCode"/>
       <el-table-column label="商品分类" align="center" prop="commodityType"/>

@@ -47,11 +47,16 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="commodityInfoList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="commodityInfoList" @selection-change="handleSelectionChange" @cell-click="handleView">
       <el-table-column type="selection" width="55" align="center"/>
       <el-table-column label="序号" type="index" width="50" align="center"/>
       <!--      <el-table-column label="合伙人id" align="center" prop="dealerId" />-->
       <el-table-column label="合伙人名称" align="center" prop="dealerName"/>
+      <el-table-column label="商品图片" align="center" prop="commodityImg">
+        <template slot-scope="scope">
+          <el-image :src="scope.row.commodityImg"></el-image>
+        </template>
+      </el-table-column>
       <el-table-column label="商品名称" align="center" prop="commodityName"/>
       <el-table-column label="商品货号" align="center" prop="commodityGoodsCode"/>
       <el-table-column label="商品分类" align="center" prop="commodityType"/>
@@ -254,6 +259,7 @@
                 :on-exceed="handleExceed"
                 :file-list="fileLists"
                 :multiple="true"
+                list-type="picture"
                 :limit=5
               >
                 <el-button slot="trigger" size="small" type="primary">选取商品轮播</el-button>
@@ -340,7 +346,162 @@
 <!--          <el-button @click="cancel">取 消</el-button>-->
         </div>
       </el-dialog>
+    </el-dialog>
 
+    <!-- 添加或修改自营商品信息对话框 -->
+    <el-dialog title="查看商品" :visible.sync="viewOpen" width="800px" append-to-body >
+      <el-form ref="form" :model="form" :rules="rules" label-width="120px">
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="合伙人">
+              <el-select v-model="form.dealerId" multiple placeholder="请选择合伙人" style="width: 99.99%" :disabled="true">
+                <el-option
+                  v-for="item in this.dealerOptions"
+                  :key="item.dealerId"
+                  :label="item.dealerName"
+                  :value="item.dealerId"
+                  filterable
+                >
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="商品名称" >
+              <el-input v-model="form.commodityName" placeholder="请输入商品名称" :disabled="true"/>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="商品货号">
+              <el-input v-model="form.commodityGoodsCode" placeholder="请输入商品货号" :disabled="true"/>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="商品库存" >
+              <el-input-number v-model="form.commodityStock" :min="1" :max="99999999" placeholder="请输入商品库存" :disabled="true"/>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="商品规格">
+              <el-input v-model="form.commodityCapacity" placeholder="请输入商品规格" :disabled="true"/>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="商品价格" >
+              <el-input-number v-model="form.commodityPrice" :precision="2" :step="1" :max="99999999" placeholder="请输入商品价格" :disabled="true"/>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="商品分类" >
+              <el-select v-model="form.commodityType" placeholder="请选择商品分类" :disabled="true">
+                <el-option
+                  v-for="sort in commodityTypeOptions"
+                  :key="sort.twoId"
+                  :label="sort.twoName"
+                  :value="sort.twoId"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="商品图片" >
+              <el-image :src="form.commodityImg"></el-image>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="是否会员" >
+              <el-radio-group v-model="form.commodityIsMember" @change="fun_ismember_change" :disabled="true">
+                <el-radio
+                  v-for="dict in commodityIsMemberOptions"
+                  :key="dict.dictValue"
+                  :label="dict.dictValue"
+                >{{ dict.dictLabel }}
+                </el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="会员价">
+              <el-input-number v-model="form.commodityMemberPrice" :precision="2" :step="1" :max="99999999" placeholder="请输入会员价" :disabled="true"/>
+            </el-form-item>
+            <el-form-item label="用优惠卷" >
+              <el-radio-group v-model="form.commodityIsCoupon" :disabled="true">
+                <el-radio
+                  v-for="dict in commodityIsMemberOptions"
+                  :key="dict.dictValue"
+                  :label="dict.dictValue"
+                >{{ dict.dictLabel }}
+                </el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="商品轮播图" >
+              <el-image
+                style="width: 200px; height: 200px"
+                :src="carouselImgView"
+                :preview-src-list="carouselImgViews">
+              </el-image>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="商品详述">
+              <el-input v-model="form.commodityDetail" type="textarea" placeholder="请输入内容" rows="4" :disabled="true"/>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="详情图片">
+              <el-image
+                style="width: 80px; height: 80px"
+                :src="detailImgView"
+                :preview-src-list="detailImgViews">
+              </el-image>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="商品进货价" >
+              <el-input-number v-model="form.commodityPurchasePrice" :precision="2" :step="1" :max="99999999"
+                               :controls="false" placeholder="请输入商品进货价格" :disabled="true"/>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="合伙人拿货价" >
+              <el-input-number v-model="form.commodityPartnerPrice" :precision="2" :step="1" :max="99999999"
+                               :controls="false" placeholder="请输入合伙人拿货价" :disabled="true"/>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="合伙人单件盈利" >
+              <el-input-number v-model="form.commodityIncomePrice" :precision="2" :step="1" :max="99999999"
+                               :controls="false" placeholder="请输入合伙人单件盈利" :disabled="true"/>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="经销商单件盈利" >
+              <el-input-number v-model="form.commodityDealerPrice" :precision="2" :step="1" :max="99999999"
+                               :controls="false" placeholder="请输入经销商单件盈利" :disabled="true"/>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="viewOpen=false">关 闭</el-button>
+      </div>
     </el-dialog>
 
     <!-- 增加库存 -->
@@ -396,6 +557,17 @@
         tempCommodityDetailImgs:[],
         // 轮播图
         fileLists: [],
+        // 商品查看
+        viewOpen: false,
+        //详情第一张图
+        detailImgView: '',
+        //详情图集合
+        detailImgViews: [],
+        //详情第一张图
+        carouselImgView: '',
+        //详情图集合
+        carouselImgViews: [],
+
         stockOpen: false,
         // 遮罩层
         loading: true,
@@ -421,6 +593,8 @@
         openDetail: false,
         // 合伙人下拉选是否禁用
         dealerStatus: false,
+        // 查看禁用
+        viewStatus: false,
         // 是否上架字典
         commodityIsReleaseOptions: [],
         // 是否会员字典
@@ -564,7 +738,7 @@
       reset() {
         this.form = {
           commodityId: null,
-          dealerId: null,
+          dealerId: [],
           dealerName: null,
           commodityName: null,
           commodityGoodsCode: null,
@@ -625,7 +799,7 @@
             name: this.form.commodityName,
             url: this.form.commodityImg
           }];
-          this.fileLists = JSON.parse(this.form.commodityImgs);
+          this.fileLists = this.form.commodityImgs == null || this.form.commodityImgs == "" ? [] : JSON.parse(this.form.commodityImgs);
           this.detailImgList = this.form.commodityDetailImg == null || this.form.commodityDetailImg == "" ? [] : JSON.parse(this.form.commodityDetailImg);
           this.open = true;
           this.title = "修改自营商品信息";
@@ -710,12 +884,6 @@
                     dealerName.push(item.dealerName);
                   }
                 })
-                /*for (let j = 0; j < this.dealerOptions.length; j++) {
-                  const map = this.dealerOptions[j];
-                  if (map.dealerId === dealerId) {
-                    dealerName.push(map.dealerName);
-                  }
-                }*/
               }
               this.form.dealerName = dealerName.join(',');
               addCommodityInfo(this.form).then(response => {
@@ -887,7 +1055,6 @@
         }
         //删除临时图片
         delImg(data).then(response => {
-          //console.log(response);
         });
       },
 
@@ -900,6 +1067,41 @@
         return true;
       },
 
+      // 审批状态点击查看操作
+      handleView(row, column, cell, event) {
+        if (column.property === 'commodityName') {
+          getCommodityInfo(row.id).then(response => {
+            this.form = response.data;
+            this.fileList = [{
+              name: this.form.commodityName,
+              url: this.form.commodityImg
+            }];
+            const tempCarouselImgViews = this.form.commodityImgs == null || this.form.commodityImgs == "" ? [] : JSON.parse(this.form.commodityImgs);
+            const tempCdetailImgViews = this.form.commodityDetailImg == null || this.form.commodityDetailImg == "" ? [] : JSON.parse(this.form.commodityDetailImg);
+            // 轮播图
+            for (let i = 0; i < tempCarouselImgViews.length; i++) {
+              const carouselImg = tempCarouselImgViews[i];
+              if (i === 0) {
+                this.carouselImgView = carouselImg.url;
+              }
+              this.carouselImgViews.push(carouselImg.url);
+            }
+            // 详情图
+            for (let i = 0; i < tempCdetailImgViews.length; i++) {
+              const img = tempCdetailImgViews[i];
+              if (i === 0) {
+                this.detailImgView = img.url;
+              }
+              this.detailImgViews.push(img.url);
+            }
+            this.viewOpen = true;
+            this.form.dealerId = [this.form.dealerId];
+            this.dealerStatus = true;
+          });
+
+
+        }
+      }
     }
   };
 </script>

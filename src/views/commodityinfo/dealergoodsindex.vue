@@ -57,12 +57,17 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="commodityInfoList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="commodityInfoList" @selection-change="handleSelectionChange" @cell-click="handleView">
       <el-table-column type="selection" width="55" align="center"/>
       <el-table-column label="序号" type="index" width="50" align="center"/>
       <!--      <el-table-column label="经销商id" align="center" prop="dealerId" />-->
       <el-table-column label="经销商名称" align="center" prop="dealer.dealerName"/>
       <el-table-column label="经销商地址" align="center" prop="dealer.dealerAddress"/>
+      <el-table-column label="商品图片" align="center" prop="commodityImg">
+        <template slot-scope="scope">
+          <el-image :src="scope.row.commodityImg"></el-image>
+        </template>
+      </el-table-column>
       <el-table-column label="商品名称" align="center" prop="commodityName"/>
       <el-table-column label="商品货号" align="center" prop="commodityGoodsCode"/>
       <el-table-column label="商品分类" align="center" prop="commodityType"/>
@@ -202,9 +207,19 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="商品图片" prop="commodityImg">
-              <el-image :src="form.commodityImg"></el-image>
+              <el-image :src="form.commodityImg" style="width: 200px; height: 200px"></el-image>
             </el-form-item>
           </el-col>
+          <el-col :span="12">
+            <el-form-item label="轮播图" prop="commodityImgs">
+              <el-image
+                style="width: 200px; height: 200px"
+                :src="carouselImgView"
+                :preview-src-list="carouselImgViews">
+              </el-image>
+            </el-form-item>
+          </el-col>
+        </el-row>
           <!--<el-col :span="12">
               <el-form-item label="是否会员" prop="commodityIsMember">
                 <el-radio-group v-model="form.commodityIsMember" :disabled="true">
@@ -244,7 +259,6 @@
               </el-image>
             </el-col>
           </el-row>
-        </el-row>
         <el-row>
           <el-col :span="24">
             <el-form-item label="审批意见"  >
@@ -331,6 +345,12 @@
         detailImgView: '',
         //详情图集合
         detailImgViews: [],
+        //详情第一张图
+        carouselImgView: '',
+        //详情图集合
+        carouselImgViews: [],
+        // 查看禁用按钮
+        viewStatus: false,
       };
     },
     created() {
@@ -460,6 +480,7 @@
           this.title = "审批商品";
           this.form.dealerId = [this.form.dealerId];
           this.dealerStatus = true;
+          // 详情图
           const detailImgs = JSON.parse(this.form.commodityDetailImg);
           for (let i = 0; i < detailImgs.length; i++) {
             const img = detailImgs[i];
@@ -467,6 +488,16 @@
               this.detailImgView = img.url;
             }
             this.detailImgViews.push(img.url);
+          }
+          // 轮播图
+          const carouselImgs = JSON.parse(this.form.commodityImgs);
+          console.log(carouselImgs);
+          for (let i = 0; i < carouselImgs.length; i++) {
+            const carouselImg = carouselImgs[i];
+            if (i === 0) {
+              this.carouselImgView = carouselImg.url;
+            }
+            this.carouselImgViews.push(carouselImg.url);
           }
         });
       },
@@ -489,6 +520,37 @@
             this.msgError(result.msg);
           }
         })
+      },
+      // 审批状态点击查看操作
+      handleView(row, column, cell, event) {
+        if (column.property === 'commodityStatus') {
+          this.form = row;
+          this.title = "查看商品";
+          this.form.dealerId = [this.form.dealerId];
+          this.dealerStatus = true;
+          // 详情图
+          const detailImgs = JSON.parse(this.form.commodityDetailImg);
+          for (let i = 0; i < detailImgs.length; i++) {
+            const img = detailImgs[i];
+            if (i === 0) {
+              this.detailImgView = img.url;
+            }
+            this.detailImgViews.push(img.url);
+          }
+          // 轮播图
+          const carouselImgs = JSON.parse(this.form.commodityImgs);
+          console.log(carouselImgs);
+          for (let i = 0; i < carouselImgs.length; i++) {
+            const carouselImg = carouselImgs[i];
+            if (i === 0) {
+              this.carouselImgView = carouselImg.url;
+            }
+            this.carouselImgViews.push(carouselImg.url);
+          }
+          this.open = true;
+          this.approveBtnOpen = false;
+          this.opinionOpen = true;
+        }
       }
     }
   };
