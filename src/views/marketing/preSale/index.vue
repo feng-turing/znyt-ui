@@ -105,23 +105,23 @@
         <el-form-item label="定金付款时间" prop="depositPayTime">
           <el-date-picker
             v-model="form.depositPayTime"
-            type="daterange"
+            type="datetimerange"
             range-separator="至"
             start-placeholder="开始日期"
             end-placeholder="结束日期"
-            value-format="yyyy-MM-dd"
-            format="yyyy-MM-dd">
+            value-format="yyyy-MM-dd HH:mm:ss"
+            format="yyyy-MM-dd HH:mm:ss">
           </el-date-picker>
         </el-form-item>
         <el-form-item label="尾款付款时间" prop="restPayTime">
           <el-date-picker
             v-model="form.restPayTime"
-            type="daterange"
+            type="datetimerange"
             range-separator="至"
             start-placeholder="开始日期"
             end-placeholder="结束日期"
-            value-format="yyyy-MM-dd"
-            format="yyyy-MM-dd">
+            value-format="yyyy-MM-dd HH:mm:ss"
+            format="yyyy-MM-dd HH:mm:ss">
           </el-date-picker>
         </el-form-item>
         <el-form-item label="预售内容" prop="content">
