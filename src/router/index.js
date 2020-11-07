@@ -132,6 +132,19 @@ export const constantRoutes = [
       }
     ]
   },
+  {
+    path: '/preOrder',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: 'detail',
+        component: (resolve) => require(['@/views/preOrder/detail'], resolve),
+        name: 'preOrderDetail',
+        meta: { title: '预售订单详情' }
+      }
+    ]
+  },
 
   {
     path: '/goods',
