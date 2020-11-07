@@ -153,6 +153,12 @@
       <el-table-column label="订单备注" align="center" prop="orderRemark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
+          <el-button v-show="scope.row.orderStatus < 2"
+            size="mini"
+            type="text"
+            icon="el-icon-money"
+            @click="handleOrderRefund(scope.row.orderNo)"
+          >发起退款</el-button>
           <el-button
             size="mini"
             type="text"
@@ -254,7 +260,7 @@
 </template>
 
 <script>
-import { listOrder, getOrder, delOrder, addOrder, updateOrder } from "@/api/system/order";
+import { listOrder, getOrder, delOrder, addOrder, updateOrder, orderRefund } from "@/api/system/order";
 
 export default {
   name: "Order",
@@ -428,6 +434,24 @@ export default {
       this.download('system/order/export', {
         ...this.queryParams
       }, `system_order.xlsx`)
+    },
+
+    // 订单退款
+    handleOrderRefund(orderNo){
+      if (orderNo == null || orderNo == '') {
+        this.msgError("订单号有误");
+        return;
+      }
+      this.$confirm('是否确认申请退款订单号为"' +orderNo + '"的数据项?', "警告", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      }).then(function() {
+        return orderRefund(orderNo);
+      }).then(() => {
+        this.getList();
+        this.msgSuccess("申请退款成功");
+      }).catch(function() {});
     },
 
     handleDetail(orderId) {

@@ -342,11 +342,11 @@
         //审批意见不可编辑
         opinionOpen: false,
         //详情第一张图
-        detailImgView: '',
+        detailImgView: null,
         //详情图集合
         detailImgViews: [],
         //详情第一张图
-        carouselImgView: '',
+        carouselImgView: null,
         //详情图集合
         carouselImgViews: [],
         // 查看禁用按钮
@@ -529,23 +529,33 @@
           this.form.dealerId = [this.form.dealerId];
           this.dealerStatus = true;
           // 详情图
-          const detailImgs = JSON.parse(this.form.commodityDetailImg);
-          for (let i = 0; i < detailImgs.length; i++) {
-            const img = detailImgs[i];
-            if (i === 0) {
-              this.detailImgView = img.url;
+          if (this.form.commodityDetailImg != null && this.form.commodityDetailImg != '') {
+            const detailImgs = JSON.parse(this.form.commodityDetailImg);
+            for (let i = 0; i < detailImgs.length; i++) {
+              const img = detailImgs[i];
+              if (i === 0) {
+                this.detailImgView = img.url;
+              }
+              this.detailImgViews.push(img.url);
             }
-            this.detailImgViews.push(img.url);
+          } else {
+            this.detailImgView = null;
+            this.detailImgViews = [];
           }
+
           // 轮播图
-          const carouselImgs = JSON.parse(this.form.commodityImgs);
-          console.log(carouselImgs);
-          for (let i = 0; i < carouselImgs.length; i++) {
-            const carouselImg = carouselImgs[i];
-            if (i === 0) {
-              this.carouselImgView = carouselImg.url;
+          if (this.form.commodityImgs != null && this.form.commodityImgs != '') {
+            const carouselImgs = JSON.parse(this.form.commodityImgs);
+            for (let i = 0; i < carouselImgs.length; i++) {
+              const carouselImg = carouselImgs[i];
+              if (i === 0) {
+                this.carouselImgView = carouselImg.url;
+              }
+              this.carouselImgViews.push(carouselImg.url);
             }
-            this.carouselImgViews.push(carouselImg.url);
+          } else {
+            this.carouselImgView = null;
+            this.carouselImgViews = [];
           }
           this.open = true;
           this.approveBtnOpen = false;

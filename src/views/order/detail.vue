@@ -28,11 +28,15 @@
           <el-col :span="3" class="table-cell-title">取货时间</el-col>
         </el-row>
         <el-row>
-          <el-col :span="4" class="table-cell">{{order.orderNo}}</el-col>
-          <el-col :span="3" class="table-cell">{{order.userMember.userName}}</el-col>
-          <el-col :span="4" class="table-cell">{{order.userMember.userPhonenumber}}</el-col>
+          <el-tooltip class="item" effect="dark" :content="order.orderNo" placement="top">
+            <el-col :span="4" class="table-cell" >{{order.orderNo}}</el-col>
+          </el-tooltip>
+          <el-col :span="3" class="table-cell">{{order.userMember.userId}}</el-col>
+          <el-col :span="4" class="table-cell">{{order.userMemberAddressVo.phone}}</el-col>
           <el-col :span="3" class="table-cell">{{orderPayWayFormat(order.orderPayWay)}}</el-col>
-          <el-col :span="4" class="table-cell">{{order.dealer.dealerAddress+''+order.dealer.dealerArea}}</el-col>
+          <el-tooltip class="item" effect="dark" :content="order.dealer.dealerArea+''+order.dealer.dealerAddress" placement="top">
+            <el-col :span="4" class="table-cell">{{order.dealer.dealerArea+''+order.dealer.dealerAddress}}</el-col>
+          </el-tooltip>
           <el-col :span="3" class="table-cell">{{order.orderCreateTime}}</el-col>
           <el-col :span="3" class="table-cell">{{order.orderExtractTime}}</el-col>
 
@@ -169,10 +173,11 @@
         orderStatusOptions: [],
         //订单信息
         order: {
-          userMember: {},
           dealer: {},
           orderCommodity: [],
           orderFee: {},
+          userMember: {},
+          userMemberAddressVo: {}
         },
         // 查询参数
         queryParams: {
@@ -208,11 +213,11 @@
         this.loading = true;
         getOrderDetail(orderId).then(response => {
           if (response.code === 200) {
-            this.order = response.data;
             //累加所有订单商品
             this.orderGoodsTotalPrice = this.order.orderCommodity.reduce((e,q)=>{
-               return e + q.commodityPrice;
+               return e + (q.commodityPrice*q.commoditySum);
             }, 0);
+            this.order = response.data;
           }
           this.loading = false;
         });

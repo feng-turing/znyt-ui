@@ -49,3 +49,11 @@ export function getOrderDetail(orderId) {
     method: 'get'
   })
 }
+
+// 发起订单线上退款
+export function orderRefund(orderNo) {
+  return request({
+    url: '/order/order/orderRefund/' + orderNo,
+    method: 'get'
+  })
+}
