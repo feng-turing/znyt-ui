@@ -68,7 +68,7 @@
             size="mini"
             type="text"
             icon="el-icon-search"
-            @click="handleDetail(scope.row)"
+            @click="handleDetail(scope.row.orderId)"
           >查看订单</el-button>
         </template>
       </el-table-column>
