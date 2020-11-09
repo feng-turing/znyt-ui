@@ -153,12 +153,18 @@
       <el-table-column label="订单备注" align="center" prop="orderRemark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
-          <el-button v-show="scope.row.orderStatus < 2"
+          <el-button v-show="scope.row.orderStatus == 1"
             size="mini"
             type="text"
             icon="el-icon-money"
             @click="handleOrderRefund(scope.row.orderNo)"
           >发起退款</el-button>
+          <el-button v-show="scope.row.orderStatus == 4"
+                     size="mini"
+                     type="text"
+                     icon="el-icon-refresh-left"
+                     @click="handleRefOrderRefund(scope.row.orderNo)"
+          >刷新退款</el-button>
           <el-button
             size="mini"
             type="text"
@@ -260,7 +266,7 @@
 </template>
 
 <script>
-import { listOrder, getOrder, delOrder, addOrder, updateOrder, orderRefund } from "@/api/system/order";
+import { listOrder, getOrder, delOrder, addOrder, updateOrder, orderRefund, updateOrderRefundStatus } from "@/api/system/order";
 
 export default {
   name: "Order",
@@ -451,6 +457,21 @@ export default {
       }).then(() => {
         this.getList();
         this.msgSuccess("申请退款成功");
+      }).catch(function() {});
+    },
+
+    handleRefOrderRefund(orderNo) {
+      if (orderNo == null || orderNo == '') {
+        this.msgError("订单号有误");
+        return;
+      }
+      updateOrderRefundStatus(orderNo).then(res=>{
+        this.getList();
+        if (res.code === 200) {
+          this.msgSuccess("刷新成功");
+        } else {
+          this.msgError(res.msg);
+        }
       }).catch(function() {});
     },
 

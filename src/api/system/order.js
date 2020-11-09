@@ -57,3 +57,11 @@ export function orderRefund(orderNo) {
     method: 'get'
   })
 }
+
+// 刷新退款状态
+export function updateOrderRefundStatus(orderNo) {
+  return request({
+    url: '/order/order/updateOrderRefundStatus/' + orderNo,
+    method: 'get'
+  })
+}
