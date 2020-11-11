@@ -1,31 +1,14 @@
 <template>
   <div class="dashboard-editor-container">
 
-    <panel-group @handleSetLineChartData="handleSetLineChartData" />
+    <panel-group @handleSetLineChartData="handleSetLineChartData"/>
+    <div style="margin-left: -100px; margin-top: 0px">
+      <div id="myChartChina" style="width: 100%; height: 800px; ">
 
-    <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
-      <line-chart :chart-data="lineChartData" />
-    </el-row>
+      </div>
+    </div>
 
-    <el-row :gutter="32">
-      <el-col :xs="24" :sm="24" :lg="8">
-        <div class="chart-wrapper">
-          <raddar-chart />
-        </div>
-      </el-col>
-      <el-col :xs="24" :sm="24" :lg="8">
-        <div class="chart-wrapper">
-          <pie-chart />
-        </div>
-      </el-col>
-      <el-col :xs="24" :sm="24" :lg="8">
-        <div class="chart-wrapper">
-          <bar-chart />
-        </div>
-      </el-col>
-    </el-row>
 
-    
   </div>
 </template>
 
@@ -35,7 +18,7 @@ import LineChart from './dashboard/LineChart'
 import RaddarChart from './dashboard/RaddarChart'
 import PieChart from './dashboard/PieChart'
 import BarChart from './dashboard/BarChart'
-import { getToken, getExpiresIn, setExpiresIn } from '@/utils/auth'
+import {getToken, getExpiresIn, setExpiresIn} from '@/utils/auth'
 
 const lineChartData = {
   newVisitis: {
@@ -77,7 +60,12 @@ export default {
   created() {
     this.refreshToken()
   },
+
+  mounted() {
+    this.drawLine();
+  },
   methods: {
+
     handleSetLineChartData(type) {
       this.lineChartData = lineChartData[type]
     },
@@ -100,7 +88,114 @@ export default {
         this.$store.commit("SET_EXPIRES_IN", expires_in - 10);
         setExpiresIn(expires_in - 10);
       }, 10000);
+    },
+
+
+    drawLine() {
+      // 基于准备好的dom，初始化echarts实例
+      var myChartContainer = document.getElementById('myChartChina');
+      var resizeMyChartContainer = function () {
+        myChartContainer.style.width = (document.body.offsetWidth) + 'px'//页面一半的大小
+      }
+      resizeMyChartContainer();
+      var myChartChina = this.$echarts.init(myChartContainer);
+
+      function randomData() {
+        return Math.round(Math.random() * 500);
+      }
+
+      // 绘制图表
+      var optionMap = {
+        tooltip: {},
+        legend: {
+          orient: 'vertical',
+          left: 'left',
+          data: ['']
+        },
+        visualMap: {
+          min: 0,
+          max: 1500,
+          left: '10%',
+          top: 'bottom',
+          text: ['高', '低'],
+          calculable: true,
+          color: ['#0b50b9', '#c3e2f4']
+        },
+        selectedMode: 'single',
+        series: [
+          {
+            name: '',
+            type: 'map',
+            mapType: 'china',
+            itemStyle: {
+              normal: {
+                borderColor: 'rgba(0, 0, 0, 0.2)'
+              },
+              emphasis: {
+                shadowOffsetX: 0,
+                shadowOffsetY: 0,
+                shadowBlur: 20,
+                borderWidth: 0,
+                shadowColor: 'rgba(0, 0, 0, 0.5)'
+              }
+            },
+            showLegendSymbol: true,
+            label: {
+              normal: {
+                show: true
+              },
+              emphasis: {
+                show: true
+              }
+            },
+            data: [
+              {name: '北京', value: randomData()},
+              {name: '天津', value: randomData()},
+              {name: '上海', value: randomData()},
+              {name: '重庆', value: randomData()},
+              {name: '河北', value: randomData()},
+              {name: '河南', value: randomData()},
+              {name: '云南', value: randomData()},
+              {name: '辽宁', value: randomData()},
+              {name: '黑龙江', value: randomData()},
+              {name: '湖南', value: randomData()},
+              {name: '安徽', value: randomData()},
+              {name: '山东', value: randomData()},
+              {name: '新疆', value: randomData()},
+              {name: '江苏', value: randomData()},
+              {name: '浙江', value: randomData()},
+              {name: '江西', value: randomData()},
+              {name: '湖北', value: randomData()},
+              {name: '广西', value: randomData()},
+              {name: '甘肃', value: randomData()},
+              {name: '山西', value: randomData()},
+              {name: '内蒙古', value: randomData()},
+              {name: '陕西', value: randomData()},
+              {name: '吉林', value: randomData()},
+              {name: '福建', value: randomData()},
+              {name: '贵州', value: randomData()},
+              {name: '广东', value: randomData()},
+              {name: '青海', value: randomData()},
+              {name: '西藏', value: randomData()},
+              {name: '四川', value: randomData()},
+              {name: '宁夏', value: randomData()},
+              {name: '海南', value: randomData()},
+              {name: '台湾', value: randomData()},
+              {name: '香港', value: randomData()},
+              {name: '澳门', value: randomData()}
+            ]
+          }
+        ]
+      }
+
+      myChartChina.setOption(optionMap);
+      window.onresize = function () {
+        resizeMyChartContainer();
+        myChartChina.resize();
+      }
     }
+
+
   }
 }
 </script>
@@ -118,7 +213,7 @@ export default {
   }
 }
 
-@media (max-width:1024px) {
+@media (max-width: 1024px) {
   .chart-wrapper {
     padding: 8px;
   }

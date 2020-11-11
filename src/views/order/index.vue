@@ -158,7 +158,7 @@
             type="text"
             icon="el-icon-money"
             @click="handleOrderRefund(scope.row.orderNo)"
-          >发起退款</el-button>
+          >申请退款</el-button>
           <el-button v-show="scope.row.orderStatus == 4"
                      size="mini"
                      type="text"
@@ -267,7 +267,6 @@
 
 <script>
 import { listOrder, getOrder, delOrder, addOrder, updateOrder, orderRefund, updateOrderRefundStatus } from "@/api/system/order";
-
 export default {
   name: "Order",
   data() {
@@ -443,7 +442,38 @@ export default {
     },
 
     // 订单退款
-    handleOrderRefund(orderNo){
+    handleOrderRefund(orderNo) {
+      if (orderNo == null || orderNo == '') {
+        this.msgError("订单号有误");
+        return;
+      }
+      this.$confirm('是否确认申请退款订单号为"' + orderNo + '"的数据项?', "警告", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+        beforeClose: (action, instance, done) => {
+          if (action === 'confirm') {
+            instance.confirmButtonLoading = true;
+            instance.confirmButtonText = '拼命退款中...';
+            orderRefund(orderNo);
+            setTimeout(() => {
+              done();
+              setTimeout(() => {
+                instance.confirmButtonLoading = false;
+              }, 300);
+            }, 3000);
+          } else {
+            done();
+          }
+        }
+      }).then(() => {
+        this.getList();
+        this.msgSuccess("申请退款成功,具体退款情况请查看数据状态");
+      }).catch(()=> {
+        this.msgInfo("已取消/关闭申请退款")
+      });
+    },
+    /* handleOrderRefund(orderNo){
       if (orderNo == null || orderNo == '') {
         this.msgError("订单号有误");
         return;
@@ -452,13 +482,16 @@ export default {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
-      }).then(function() {
-        return orderRefund(orderNo);
-      }).then(() => {
-        this.getList();
-        this.msgSuccess("申请退款成功");
+      }).then(async() =>{
+        const res = await orderRefund(orderNo);
+        if (res.code === 200) {
+          this.getList();
+          this.msgSuccess("申请退款成功");
+        } else {
+          this.msgError(res.msg);
+        }
       }).catch(function() {});
-    },
+    },*/
 
     handleRefOrderRefund(orderNo) {
       if (orderNo == null || orderNo == '') {
@@ -480,4 +513,5 @@ export default {
     }
   }
 };
+
 </script>
