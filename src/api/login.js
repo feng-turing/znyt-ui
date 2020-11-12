@@ -44,3 +44,19 @@ export function getCodeImg() {
     method: 'get'
   })
 }
+
+//查询有效订单数据(首页)
+export function findMainOrderSalesInfo() {
+  return request({
+    url: '/order/order/findMainOrderSalesInfo',
+    method: 'get'
+  })
+}
+
+//查询经销商首页地图数据
+export function findDealerChinaChartData() {
+  return request({
+    url: '/usercenter/dealer/findDealerChinaChartData',
+    method: 'get'
+  })
+}

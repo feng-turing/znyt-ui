@@ -1,10 +1,9 @@
 <template>
   <div class="dashboard-editor-container">
 
-    <panel-group @handleSetLineChartData="handleSetLineChartData"/>
+    <panel-group @handleSetLineChartData="handleSetLineChartData" :orderInfo="orderInfo" v-if="initChildrenSuccess"/>
     <div style="margin-left: -100px; margin-top: 0px">
       <div id="myChartChina" style="width: 100%; height: 800px; ">
-
       </div>
     </div>
 
@@ -14,11 +13,8 @@
 
 <script>
 import PanelGroup from './dashboard/PanelGroup'
-import LineChart from './dashboard/LineChart'
-import RaddarChart from './dashboard/RaddarChart'
-import PieChart from './dashboard/PieChart'
-import BarChart from './dashboard/BarChart'
 import {getToken, getExpiresIn, setExpiresIn} from '@/utils/auth'
+import {findDealerChinaChartData, findMainOrderSalesInfo} from "@/api/login";
 
 const lineChartData = {
   newVisitis: {
@@ -43,10 +39,6 @@ export default {
   name: 'Index',
   components: {
     PanelGroup,
-    LineChart,
-    RaddarChart,
-    PieChart,
-    BarChart
   },
   data() {
     return {
@@ -54,18 +46,29 @@ export default {
       refreshLock: false,
       //刷新token的时间
       refreshTime: '',
-      lineChartData: lineChartData.newVisitis
+      lineChartData: lineChartData.newVisitis,
+      initChildrenSuccess: false,
+      chartChinaMapData: [],
+      orderInfo: null,
     }
   },
   created() {
-    this.refreshToken()
+    this.refreshToken();
+    // 查询中国地图经销商数订单
+     findDealerChinaChartData().then(res=>{
+       this.chartChinaMapData = res;
+       this.drawLine();
+    });
+    // 查询有效订单数据(首页)
+    findMainOrderSalesInfo().then(res=>{
+      this.orderInfo = res.data;
+      this.initChildrenSuccess = true;
+    });
   },
-
   mounted() {
-    this.drawLine();
+
   },
   methods: {
-
     handleSetLineChartData(type) {
       this.lineChartData = lineChartData[type]
     },
@@ -100,21 +103,17 @@ export default {
       resizeMyChartContainer();
       var myChartChina = this.$echarts.init(myChartContainer);
 
-      function randomData() {
-        return Math.round(Math.random() * 500);
-      }
-
       // 绘制图表
       var optionMap = {
         tooltip: {},
         legend: {
           orient: 'vertical',
-          left: 'left',
+          left: 'ceneter',
           data: ['']
         },
         visualMap: {
           min: 0,
-          max: 1500,
+          max: 1000,
           left: '10%',
           top: 'bottom',
           text: ['高', '低'],
@@ -148,42 +147,7 @@ export default {
                 show: true
               }
             },
-            data: [
-              {name: '北京', value: randomData()},
-              {name: '天津', value: randomData()},
-              {name: '上海', value: randomData()},
-              {name: '重庆', value: randomData()},
-              {name: '河北', value: randomData()},
-              {name: '河南', value: randomData()},
-              {name: '云南', value: randomData()},
-              {name: '辽宁', value: randomData()},
-              {name: '黑龙江', value: randomData()},
-              {name: '湖南', value: randomData()},
-              {name: '安徽', value: randomData()},
-              {name: '山东', value: randomData()},
-              {name: '新疆', value: randomData()},
-              {name: '江苏', value: randomData()},
-              {name: '浙江', value: randomData()},
-              {name: '江西', value: randomData()},
-              {name: '湖北', value: randomData()},
-              {name: '广西', value: randomData()},
-              {name: '甘肃', value: randomData()},
-              {name: '山西', value: randomData()},
-              {name: '内蒙古', value: randomData()},
-              {name: '陕西', value: randomData()},
-              {name: '吉林', value: randomData()},
-              {name: '福建', value: randomData()},
-              {name: '贵州', value: randomData()},
-              {name: '广东', value: randomData()},
-              {name: '青海', value: randomData()},
-              {name: '西藏', value: randomData()},
-              {name: '四川', value: randomData()},
-              {name: '宁夏', value: randomData()},
-              {name: '海南', value: randomData()},
-              {name: '台湾', value: randomData()},
-              {name: '香港', value: randomData()},
-              {name: '澳门', value: randomData()}
-            ]
+            data: this.chartChinaMapData,
           }
         ]
       }
@@ -194,7 +158,6 @@ export default {
         myChartChina.resize();
       }
     }
-
 
   }
 }
