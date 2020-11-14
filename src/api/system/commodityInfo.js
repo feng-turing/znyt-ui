@@ -84,7 +84,8 @@ export function selectDealerList() {
     url: '/usercenter/dealer/getDealerList',
     method: 'get',
     params: {
-      isPartner: 'Y'
+      isPartner: 'Y',
+      dealerStatus: 1
     }
   })
 }

@@ -442,7 +442,7 @@ export default {
     },
 
     // 订单退款
-    handleOrderRefund(orderNo) {
+    /*handleOrderRefund(orderNo) {
       if (orderNo == null || orderNo == '') {
         this.msgError("订单号有误");
         return;
@@ -472,8 +472,8 @@ export default {
       }).catch(()=> {
         this.msgInfo("已取消/关闭申请退款")
       });
-    },
-    /* handleOrderRefund(orderNo){
+    },*/
+     handleOrderRefund(orderNo){
       if (orderNo == null || orderNo == '') {
         this.msgError("订单号有误");
         return;
@@ -491,7 +491,7 @@ export default {
           this.msgError(res.msg);
         }
       }).catch(function() {});
-    },*/
+    },
 
     handleRefOrderRefund(orderNo) {
       if (orderNo == null || orderNo == '') {
