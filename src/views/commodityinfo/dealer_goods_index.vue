@@ -153,7 +153,7 @@
               <el-image :src="form.commodityImg"></el-image>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
+          <!--<el-col :span="12">
               <el-form-item label="是否会员" prop="commodityIsMember">
                 <el-radio-group v-model="form.commodityIsMember" :disabled="true">
                   <el-radio
@@ -177,7 +177,7 @@
                 </el-radio>
               </el-radio-group>
             </el-form-item>
-          </el-col>
+          </el-col>-->
           <el-row>
             <el-col :span="20">
               <el-form-item label="商品详情"  >
